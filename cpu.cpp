@@ -216,9 +216,9 @@ void CPU::execute() {
 		case 0xf8: {
 			int8_t byte = fetch8();
 			if (byte >= 0) {
-				alu.add8(sp, byte);
+				alu.add(sp, byte);
 			} else {
-				alu.sub8(sp, -byte);
+				alu.sub(sp, -byte);
 			}
 			hl = sp + byte;
 			flags.setZ(false);
@@ -241,17 +241,17 @@ void CPU::execute() {
 		case 0x85:
 		case 0x87: {
 			uint8_t byte = getRegister(op & 0x7);
-			af.high = alu.add8(af.high, byte);
+			af.high = alu.add(af.high, byte);
 			break;
 		}
 		case 0xc6: {
 			uint8_t imme = fetch8();
-			af.high = alu.add8(af.high, imme);
+			af.high = alu.add(af.high, imme);
 			break;
 		}
 		case 0x86: {
 			uint8_t byte = addrBus.read(hl);
-			af.high = alu.add8(af.high, byte);
+			af.high = alu.add(af.high, byte);
 			break;
 		}
 		case 0x88:
@@ -262,17 +262,17 @@ void CPU::execute() {
 		case 0x8d:
 		case 0x8f: {
 			uint8_t byte = getRegister(op & 0x7);
-			af.high = alu.add8(af.high, byte, flags.getC());
+			af.high = alu.adc(af.high, byte);
 			break;
 		}
 		case 0xce: {
 			uint8_t imme = fetch8();
-			af.high = alu.add8(af.high, imme, flags.getC());
+			af.high = alu.adc(af.high, imme);
 			break;
 		}
 		case 0x8e: {
 			uint8_t byte = addrBus.read(hl);
-			af.high = alu.add8(af.high, byte, flags.getC());
+			af.high = alu.adc(af.high, byte);
 			break;
 		}
 		case 0x90:
@@ -283,17 +283,17 @@ void CPU::execute() {
 		case 0x95:
 		case 0x97: {
 			uint8_t byte = getRegister(op & 0x7);
-			af.high = alu.sub8(af.high, byte);
+			af.high = alu.sub(af.high, byte);
 			break;
 		}
 		case 0xd6: {
 			uint8_t imme = fetch8();
-			af.high = alu.sub8(af.high, imme);
+			af.high = alu.sub(af.high, imme);
 			break;
 		}
 		case 0x96: {
 			uint8_t byte = addrBus.read(hl);
-			af.high = alu.sub8(af.high, byte);
+			af.high = alu.sub(af.high, byte);
 			break;
 		}
 		case 0x98:
@@ -304,17 +304,17 @@ void CPU::execute() {
 		case 0x9d:
 		case 0x9f: {
 			uint8_t byte = getRegister(op & 0x7);
-			af.high = alu.sub8(af.high, byte, 1 - flags.getC());
+			af.high = alu.sbc(af.high, byte);
 			break;
 		}
 		case 0xde: {
 			uint8_t imme = fetch8();
-			af.high = alu.sub8(af.high, imme, 1 - flags.getC());
+			af.high = alu.sbc(af.high, imme);
 			break;
 		}
 		case 0x9e: {
 			uint8_t byte = addrBus.read(hl);
-			af.high = alu.sub8(af.high, byte,1 - flags.getC());
+			af.high = alu.sbc(af.high, byte);
 			break;
 		}
 		case 0xa0:
@@ -325,17 +325,17 @@ void CPU::execute() {
 		case 0xa5:
 		case 0xa7: {
 			uint8_t byte = getRegister(op & 0x7);
-			af.high = alu.and8(af.high, byte);
+			af.high = alu.band(af.high, byte);
 			break;
 		}
 		case 0xe6: {
 			uint8_t imme = fetch8();
-			af.high = alu.and8(af.high, imme);
+			af.high = alu.band(af.high, imme);
 			break;
 		}
 		case 0xa6: {
 			uint8_t byte = addrBus.read(hl);
-			af.high = alu.and8(af.high, byte);
+			af.high = alu.band(af.high, byte);
 			break;
 		}
 		case 0xb0:
@@ -346,17 +346,17 @@ void CPU::execute() {
 		case 0xb5:
 		case 0xb7: {
 			uint8_t byte = getRegister(op & 0x7);
-			af.high = alu.or8(af.high, byte);
+			af.high = alu.bor(af.high, byte);
 			break;
 		}
 		case 0xf6: {
 			uint8_t imme = fetch8();
-			af.high = alu.or8(af.high, imme);
+			af.high = alu.bor(af.high, imme);
 			break;
 		}
 		case 0xb6: {
 			uint8_t byte = addrBus.read(hl);
-			af.high = alu.or8(af.high, byte);
+			af.high = alu.bor(af.high, byte);
 			break;
 		}
 		case 0xa8:
@@ -367,17 +367,17 @@ void CPU::execute() {
 		case 0xad:
 		case 0xaf: {
 			uint8_t byte = getRegister(op & 0x7);
-			af.high = alu.xor8(af.high, byte);
+			af.high = alu.bxor(af.high, byte);
 			break;
 		}
 		case 0xee: {
 			uint8_t imme = fetch8();
-			af.high = alu.xor8(af.high, imme);
+			af.high = alu.bxor(af.high, imme);
 			break;
 		}
 		case 0xae: {
 			uint8_t byte = addrBus.read(hl);
-			af.high = alu.xor8(af.high, byte);
+			af.high = alu.bxor(af.high, byte);
 			break;
 		}
 		case 0xb8:
@@ -388,17 +388,17 @@ void CPU::execute() {
 		case 0xbd:
 		case 0xbf: {
 			uint8_t byte = getRegister(op & 0x7);
-			alu.sub8(af.high, byte);
+			alu.sub(af.high, byte);
 			break;
 		}
 		case 0xfe: {
 			uint8_t imme = fetch8();
-			alu.sub8(af.high, imme);
+			alu.sub(af.high, imme);
 			break;
 		}
 		case 0xbe: {
 			uint8_t byte = addrBus.read(hl);
-			alu.sub8(af.high, byte);
+			alu.sub(af.high, byte);
 			break;
 		}
 		case 0x4:
@@ -409,12 +409,12 @@ void CPU::execute() {
 		case 0x2c:
 		case 0x3c: {
 			uint8_t &dest = getRegister(op >> 3 & 0x7);
-			dest = alu.inc8(dest);
+			dest = alu.inc(dest);
 			break;
 		}
 		case 0x34: {
 			uint8_t byte = addrBus.read(hl);
-			addrBus.write(hl, alu.inc8(byte));
+			addrBus.write(hl, alu.inc(byte));
 			break;
 		}
 		case 0x5:
@@ -425,12 +425,12 @@ void CPU::execute() {
 		case 0x2d:
 		case 0x3d: {
 			uint8_t& dest = getRegister(op >> 3 & 0x7);
-			dest = alu.dec8(dest);
+			dest = alu.dec(dest);
 			break;
 		}
 		case 0x35: {
 			uint8_t byte = addrBus.read(hl);
-			addrBus.write(hl, alu.dec8(byte));
+			addrBus.write(hl, alu.dec(byte));
 			break;
 		}
 
@@ -449,9 +449,9 @@ void CPU::execute() {
 		case 0xe8: {
 			int8_t byte = fetch8();
 			if (byte >= 0) {
-				alu.add8(sp, byte);
+				alu.add(sp, byte);
  			} else {
-				alu.sub8(sp, -byte);
+				alu.sub(sp, -byte);
 			}
 			sp = sp + byte;
 			flags.setZ(false);
@@ -477,19 +477,19 @@ void CPU::execute() {
 
 
 		case 0x7: {
-			af.high = alu.rotLeft(af.high);
+			af.high = alu.rlc(af.high);
 			break;
 		}
 		case 0x17: {
-			af.high = alu.rotLeft(af.high, false);
+			af.high = alu.rl(af.high);
 			break;
 		}
 		case 0xf: {
-			af.high = alu.rotRight(af.high);
+			af.high = alu.rrc(af.high);
 			break;
 		}
 		case 0x1f: {
-			af.high = alu.rotRight(af.high, false);
+			af.high = alu.rr(af.high);
 			break;
 		}
 
@@ -654,13 +654,13 @@ void CPU::executeCB() {
 		case 0x5:
 		case 0x7: {
 			uint8_t &byte = getRegister(op & 0x7);
-			byte = alu.rotLeft(byte);
+			byte = alu.rlc(byte);
 			flags.setZ(byte == 0);
 			break;
 		}
 		case 0x6: {
 			uint8_t byte = addrBus.read(hl);
-			byte = alu.rotLeft(byte);
+			byte = alu.rlc(byte);
 			addrBus.write(hl, byte);
 			flags.setZ(byte == 0);
 			break;
@@ -673,13 +673,13 @@ void CPU::executeCB() {
 		case 0x15:
 		case 0x17: {
 			uint8_t& byte = getRegister(op & 0x7);
-			byte = alu.rotLeft(byte, false);
+			byte = alu.rl(byte);
 			flags.setZ(byte == 0);
 			break;
 		}
 		case 0x16: {
 			uint8_t byte = addrBus.read(hl);
-			byte = alu.rotLeft(byte, false);
+			byte = alu.rl(byte);
 			addrBus.write(hl, byte);
 			flags.setZ(byte == 0);
 			break;
@@ -692,13 +692,13 @@ void CPU::executeCB() {
 		case 0xd:
 		case 0xf: {
 			uint8_t& byte = getRegister(op & 0x7);
-			byte = alu.rotRight(byte);
+			byte = alu.rrc(byte);
 			flags.setZ(byte == 0);
 			break;
 		}
 		case 0xe: {
 			uint8_t byte = addrBus.read(hl);
-			byte = alu.rotRight(byte);
+			byte = alu.rrc(byte);
 			addrBus.write(hl, byte);
 			flags.setZ(byte == 0);
 			break;
@@ -711,13 +711,13 @@ void CPU::executeCB() {
 		case 0x1d:
 		case 0x1f: {
 			uint8_t& byte = getRegister(op & 0x7);
-			byte = alu.rotRight(byte, false);
+			byte = alu.rr(byte);
 			flags.setZ(byte == 0);
 			break;
 		}
 		case 0x1e: {
 			uint8_t byte = addrBus.read(hl);
-			byte = alu.rotRight(byte, false);
+			byte = alu.rr(byte);
 			addrBus.write(hl, byte);
 			flags.setZ(byte == 0);
 			break;
@@ -730,12 +730,12 @@ void CPU::executeCB() {
 		case 0x25:
 		case 0x27: {
 			uint8_t& byte = getRegister(op & 0x7);
-			byte = alu.shiftLeft(byte);
+			byte = alu.sla(byte);
 			break;
 		}
 		case 0x26: {
 			uint8_t byte = addrBus.read(hl);
-			byte = alu.shiftLeft(byte);
+			byte = alu.sla(byte);
 			addrBus.write(hl, byte);
 			break;
 		}
@@ -747,12 +747,12 @@ void CPU::executeCB() {
 		case 0x2d:
 		case 0x2f: {
 			uint8_t& byte = getRegister(op & 0x7);
-			byte = alu.shiftRight(byte);
+			byte = alu.sra(byte);
 			break;
 		}
 		case 0x2e: {
 			uint8_t byte = addrBus.read(hl);
-			byte = alu.shiftRight(byte);
+			byte = alu.sra(byte);
 			addrBus.write(hl, byte);
 			break;
 		}
@@ -764,12 +764,12 @@ void CPU::executeCB() {
 		case 0x3d:
 		case 0x3f: {
 			uint8_t& byte = getRegister(op & 0x7);
-			byte = alu.shiftRight(byte, false);
+			byte = alu.srl(byte);
 			break;
 		}
 		case 0x3e: {
 			uint8_t byte = addrBus.read(hl);
-			byte = alu.shiftRight(byte, false);
+			byte = alu.srl(byte);
 			addrBus.write(hl, byte);
 			break;
 		}
