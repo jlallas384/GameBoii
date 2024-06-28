@@ -2,19 +2,16 @@
 #include <iostream>
 #include "cpu.h"
 #include "addressbus.h"
-
-void print(Flags& f) {
-	std::cout << "Z: " << f.getZ() << " C: " << f.getC() << " H: " << f.getH() << std::endl;
-}
-
+#include "ioregs.h"
 
 
 int main() {
-	uint8_t x = 0;
-	Flags f(x);
-	ALU alu(f);
-	uint8_t xx = alu.add8(255, 1);
-	uint8_t zz = alu.shiftLeft(128);
-	print(f);
-	std::cout << (int)zz;
+	Mapped* m = new JoypadReg;
+	m->write(100, 0b00011111);
+	JoypadReg* p = dynamic_cast<JoypadReg*>(m);
+	std::cout << p->setButtonState(p->kStart);
+	std::cout << p->setButtonState(p->kStart);
+	std::cout << p->setButtonState(0);
+	std::cout << p->setButtonState(p->kStart);
+	std::cout << p->setButtonState(p->kStart);
 }
