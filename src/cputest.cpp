@@ -16,28 +16,24 @@
 
 using nlohmann::json;
 
-int hexToDecimal(const std::string& s) {
-    return std::stoul(s, nullptr, 16);
-}
-
 struct States {
     uint8_t a, b, c, d, e, f, h, l;
     uint16_t pc, sp;
     std::vector<std::pair<uint16_t, uint8_t>> ram;
     States(const json& j) {
-        a = hexToDecimal(j["cpu"]["a"]);
-        b = hexToDecimal(j["cpu"]["b"]);
-        c = hexToDecimal(j["cpu"]["c"]);
-        d = hexToDecimal(j["cpu"]["d"]);
-        e = hexToDecimal(j["cpu"]["e"]);
-        f = hexToDecimal(j["cpu"]["f"]);
-        h = hexToDecimal(j["cpu"]["h"]);
-        l = hexToDecimal(j["cpu"]["l"]);
-        pc = hexToDecimal(j["cpu"]["pc"]);
-        sp = hexToDecimal(j["cpu"]["sp"]);
+        a = j["a"];
+        b = j["b"];
+        c = j["c"];
+        d = j["d"];
+        e = j["e"];
+        f = j["f"];
+        h = j["h"];
+        l = j["l"];
+        pc = j["pc"] - 1;
+        sp = j["sp"];
         const auto& r = j["ram"];
         std::transform(r.begin(), r.end(), std::back_inserter(ram), [](auto arg) {
-            return std::make_pair(hexToDecimal(arg[0]), hexToDecimal(arg[1]));
+            return std::make_pair(arg[0], arg[1]);
         });
     }
 };
@@ -117,22 +113,10 @@ protected:
 CustomMemory CPUTest::m;
 CPU CPUTest::c = CPU(m);
 
-std::vector<std::pair<States, States>> load(const std::string& name) {
-    std::ifstream file(name);
-    json j;
-    file >> j;
-    std::vector<std::pair<States, States>> ret;
-    for (const auto& i : j) {
-        ret.emplace_back(i["initial"], i["final"]);
-    }
-    return ret;
-}
-
 void registerTests() {
     namespace fs = std::filesystem;
     for (const auto& f : fs::directory_iterator("tests")) {
         std::string name = f.path().stem().string();
-        if (name != "f1") continue;
         std::ifstream file(f.path());
         json j;
         file >> j;
@@ -147,10 +131,4 @@ int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
     registerTests();
     return RUN_ALL_TESTS();
-    //uint8_t x;
-    //Flags f(x);
-    //ALU a(f);
-    //int8_t z = -57;
-    //a.sub(0x57, -z);
-    //std::cout << f.getC();
 }
