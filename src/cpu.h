@@ -26,7 +26,7 @@ private:
     uint8_t fetch8();
     uint16_t fetch16();
     uint8_t& getRegister(uint8_t reg);
-    gb_int& getRegisterPair(uint8_t reg, bool isSP = true);
+    gb_int& getRegisterPair(uint8_t reg);
     bool getCondition(uint8_t cc) const;
 
     gb_int af, bc, de, hl, pc, sp;

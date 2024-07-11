@@ -218,22 +218,34 @@ void CPU::execute() {
         case 0xc5:
         case 0xd5:
         case 0xe5:
-        case 0xf5:
         {
-            gb_int src = getRegisterPair(op >> 4 & 0x3, false);
+            gb_int src = getRegisterPair(op >> 4 & 0x3);
             addrBus.write(sp - 1, src.high);
             addrBus.write(sp - 2, src.low);
+            sp = sp - 2;
+            break;
+        }
+        case 0xf5:
+        {
+            addrBus.write(sp - 1, af.high);
+            addrBus.write(sp - 2, af.low);
             sp = sp - 2;
             break;
         }
         case 0xc1:
         case 0xd1:
         case 0xe1:
-        case 0xf1:
         {
-            gb_int& dest = getRegisterPair(op >> 4 & 0x3, false);
+            gb_int& dest = getRegisterPair(op >> 4 & 0x3);
             dest.low = addrBus.read(sp);
             dest.high = addrBus.read(sp + 1);
+            sp = sp + 2;
+            break;
+        }
+        case 0xf1:
+        {
+            af.low = addrBus.read(sp) & 0xf0;
+            af.high = addrBus.read(sp + 1);
             sp = sp + 2;
             break;
         }
@@ -653,7 +665,7 @@ void CPU::execute() {
         case 0xf7:
         case 0xff:
         {
-            uint16_t addr = ((op >> 3) & 0x3) << 3;
+            uint16_t addr = ((op >> 3) & 0x7) << 3;
             addrBus.write(sp - 1, pc.high);
             addrBus.write(sp - 2, pc.low);
             pc = addr;
@@ -959,7 +971,7 @@ void CPU::executeCB() {
         case 0x7d:
         case 0x7f:
         {
-            int bit = op >> 3 & 0x7;
+            uint8_t bit = op >> 3 & 0x7;
             uint8_t byte = getRegister(op & 0x7);
             flags.setZ(!getBit(byte, bit));
             flags.setN(false);
@@ -975,7 +987,7 @@ void CPU::executeCB() {
         case 0x76:
         case 0x7e:
         {
-            int bit = op >> 3 & 0x7;
+            uint8_t bit = op >> 3 & 0x7;
             uint8_t byte = addrBus.read(hl);
             flags.setZ(!getBit(byte, bit));
             flags.setN(false);
@@ -1039,8 +1051,8 @@ void CPU::executeCB() {
         case 0xfd:
         case 0xff:
         {
-            int bit = op >> 3 & 0x7;
-            uint8_t &byte = getRegister(op & 0x7);
+            uint8_t bit = op >> 3 & 0x7;
+            uint8_t& byte = getRegister(op & 0x7);
             byte = setBit(byte, bit, true);
             break;
         }
@@ -1053,7 +1065,7 @@ void CPU::executeCB() {
         case 0xf6:
         case 0xfe:
         {
-            int bit = op >> 3 & 0x7;
+            uint8_t bit = op >> 3 & 0x7;
             addrBus.writeBit(hl, bit, true);
             break;
         }
@@ -1114,7 +1126,7 @@ void CPU::executeCB() {
         case 0xbd:
         case 0xbf:
         {
-            int bit = op >> 3 & 0x7;
+            uint8_t bit = op >> 3 & 0x7;
             uint8_t& byte = getRegister(op & 0x7);
             byte = setBit(byte, bit, false);
             break;
@@ -1128,7 +1140,7 @@ void CPU::executeCB() {
         case 0xb6:
         case 0xbe:
         {
-            int bit = op >> 3 & 0x7;
+            uint8_t bit = op >> 3 & 0x7;
             addrBus.writeBit(hl, bit, false);
             break;
         }
@@ -1168,7 +1180,7 @@ uint8_t& CPU::getRegister(uint8_t reg) {
     }
 }
 
-gb_int& CPU::getRegisterPair(uint8_t reg, bool isSP) {
+gb_int& CPU::getRegisterPair(uint8_t reg) {
     switch (reg) {
         case 0:
             return bc;
@@ -1177,7 +1189,7 @@ gb_int& CPU::getRegisterPair(uint8_t reg, bool isSP) {
         case 2:
             return hl;
         case 3:
-            return isSP ? sp : af;
+            return sp;
         default:
             throw std::exception();
     }
