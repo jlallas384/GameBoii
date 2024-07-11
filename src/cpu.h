@@ -1,8 +1,10 @@
 #pragma	once
 
 #include <cstdint>
+#include <windows.h>
 #include "flags.h"
 #include "alu.h"
+
 
 struct gb_int {
     gb_int() {}
@@ -13,11 +15,11 @@ struct gb_int {
     uint8_t high = 0, low = 0;
 };
 
-class AddressBus;
+class MultiAddrMapped;
 
 class CPU {
 public:
-    CPU(AddressBus& _addrBus);
+    CPU(MultiAddrMapped& addrBus);
     void execute();
 private:
     void executeCB();
@@ -25,11 +27,11 @@ private:
     uint16_t fetch16();
     uint8_t& getRegister(uint8_t reg);
     gb_int& getRegisterPair(uint8_t reg, bool isSP = true);
-    bool getCondition(uint8_t cc);
+    bool getCondition(uint8_t cc) const;
 
     gb_int af, bc, de, hl, pc, sp;
     bool ime = false;
-    AddressBus& addrBus;
+    MultiAddrMapped& addrBus;
     Flags flags;
     ALU alu;
 };

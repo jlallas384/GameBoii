@@ -25,17 +25,14 @@ public:
         return ret;
     }
 private:
-    void write(uint8_t byte) override {
-        value = byte & 0xf0;
-    }
     uint8_t read() const override {
         if (!(value & 0x20)) {
-            return value | buttonState;
+            return (value & 0xf0) | buttonState;
         }
         if (!(value & 0x10)) {
-            return value | dPadState;
+            return (value & 0xf0) | dPadState;
         }
         return 0xf;
     }
-    uint8_t value = 0xff, buttonState = 0xf, dPadState = 0xf;
+    uint8_t buttonState = 0xf, dPadState = 0xf;
 };
