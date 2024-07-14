@@ -607,10 +607,7 @@ void CPU::execute() {
         case 0xcd:
         {
             uint16_t addr = fetch16();
-            addrBus.write(sp - 1, pc.high);
-            addrBus.write(sp - 2, pc.low);
-            pc = addr;
-            sp = sp - 2;
+            call(addr);
             break;
         }
         case 0xc4:
@@ -621,10 +618,7 @@ void CPU::execute() {
             uint16_t addr = fetch16();
             bool cond = getCondition(op >> 3 & 0x3);
             if (cond) {
-                addrBus.write(sp - 1, pc.high);
-                addrBus.write(sp - 2, pc.low);
-                pc = addr;
-                sp = sp - 2;
+                call(addr);
             }
             break;
         }
@@ -666,10 +660,7 @@ void CPU::execute() {
         case 0xff:
         {
             uint16_t addr = ((op >> 3) & 0x7) << 3;
-            addrBus.write(sp - 1, pc.high);
-            addrBus.write(sp - 2, pc.low);
-            pc = addr;
-            sp = sp - 2;
+            call(addr);
             break;
         }
 
@@ -988,8 +979,7 @@ void CPU::executeCB() {
         case 0x7e:
         {
             uint8_t bit = op >> 3 & 0x7;
-            uint8_t byte = addrBus.read(hl);
-            flags.setZ(!getBit(byte, bit));
+            flags.setZ(!addrBus.readBit(hl, bit));
             flags.setN(false);
             flags.setH(true);
             break;
@@ -1208,4 +1198,11 @@ bool CPU::getCondition(uint8_t cc) const {
         default:
             throw std::exception();
     }
+}
+
+void CPU::call(uint16_t addr) {
+    addrBus.write(sp - 1, pc.high);
+    addrBus.write(sp - 2, pc.low);
+    pc = addr;
+    sp = sp - 2;
 }
