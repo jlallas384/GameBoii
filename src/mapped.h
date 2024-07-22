@@ -36,12 +36,23 @@ private:
 class SingleAddrMapped : public Mapped {
 public:
     SingleAddrMapped(uint8_t value = 0) : value(value) {}
+    operator uint8_t() {
+        return value;
+    }
     virtual void write(uint8_t byte) {
         value = byte;
     }
     virtual uint8_t read() const {
         return value;
     }
+    void writeBit(uint8_t bit, bool on) {
+        write(setBit(read(), bit, on));
+    }
+    bool readBit(uint8_t bit) const {
+        return read() & (1 << bit);
+    }
+    bool readBit(uint16_t addr, uint8_t bit) = delete;
+    void writeBit(uint16_t addr, uint8_t bit, bool on) = delete;
 private:
     void write(uint16_t addr, uint8_t byte) override final {
         write(byte);

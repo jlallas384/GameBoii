@@ -14,4 +14,5 @@ void MBC1::write(uint16_t addr, uint8_t byte) {
     if (bank1Value() == 0) {
         bank1.write(0x1);
     }
+    
 }

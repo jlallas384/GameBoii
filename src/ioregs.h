@@ -14,25 +14,9 @@ public:
         kLeft = 0x2,
         kRight = 0x1
     };
-    bool setButtonState(uint8_t state) {
-        bool ret = (buttonState & state) && !(value & 0x20);
-        buttonState = ~state & 0xf;
-        return ret;
-    }
-    bool setDPadState(uint8_t state) {
-        bool ret = (dPadState & state) && !(value & 0x10);
-        dPadState = ~state & 0xf;
-        return ret;
-    }
+    bool setButtonState(uint8_t state);
+    bool setDPadState(uint8_t state);
 private:
-    uint8_t read() const override {
-        if (!(value & 0x20)) {
-            return (value & 0xf0) | buttonState;
-        }
-        if (!(value & 0x10)) {
-            return (value & 0xf0) | dPadState;
-        }
-        return 0xf;
-    }
+    uint8_t read() const override;
     uint8_t buttonState = 0xf, dPadState = 0xf;
 };

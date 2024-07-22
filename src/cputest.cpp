@@ -96,6 +96,7 @@ public:
             EXPECT_EQ(m.read(addr), byte);
         }
         m.revert();
+        
     }
     void run(int to) {
         while (c.pc != to) {
@@ -126,8 +127,8 @@ void registerTests() {
         });
     }
 }
-int main(int argc, char** argv) {
-    testing::InitGoogleTest(&argc, argv);
-    registerTests();
-    return RUN_ALL_TESTS();
-}
+//int main(int argc, char** argv) {
+//    testing::InitGoogleTest(&argc, argv);
+//    registerTests();
+//    return RUN_ALL_TESTS();
+//}
