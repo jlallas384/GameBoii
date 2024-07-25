@@ -14,11 +14,11 @@ struct gb_int {
     uint8_t high = 0, low = 0;
 };
 
-class MultiAddrMapped;
+class AddressBus;
 
 class CPU {
 public:
-    CPU(MultiAddrMapped& addrBus);
+    CPU(AddressBus& addrBus);
     void execute();
 private:
     void executeCB();
@@ -31,7 +31,7 @@ private:
 
     gb_int af, bc, de, hl, pc, sp;
     bool ime = false;
-    MultiAddrMapped& addrBus;
+    AddressBus& addrBus;
     Flags flags;
     ALU alu;
 

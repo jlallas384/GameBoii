@@ -1,9 +1,9 @@
 #include "cpu.h"
 #include <exception>
-#include "mapped.h"
+#include "address_bus.h"
 #include "utils.h"
 
-CPU::CPU(MultiAddrMapped& addrBus) : addrBus(addrBus), flags(af.low), alu(flags) {
+CPU::CPU(AddressBus& addrBus) : addrBus(addrBus), flags(af.low), alu(flags) {
 
 }
 
