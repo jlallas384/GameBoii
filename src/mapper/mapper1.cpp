@@ -2,7 +2,7 @@
 
 #include "address_bus.h"
 
-void Mapper1::initBus(AddressBus& addrBus) {
+void Mapper1::loadToAddrBus(AddressBus& addrBus) {
     for (int i = 0; i < 0x2000; i++) {
         addrBus.setWriter(i, [&](uint8_t byte) {
             ramEnable = (byte & 0xf) == 0xa;

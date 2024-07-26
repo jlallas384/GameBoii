@@ -7,7 +7,7 @@
 
 struct gb_int {
     gb_int() {}
-    gb_int(int value) : high(static_cast<uint8_t>(value >> 8)), low(value & 0xFF) {}
+    gb_int(int value) : high(static_cast<uint8_t>(value >> 8)), low(value & 0xff) {}
     operator uint16_t() {
         return static_cast<uint16_t>((high << 8) | low);
     }

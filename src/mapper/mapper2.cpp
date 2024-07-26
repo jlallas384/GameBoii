@@ -3,7 +3,7 @@
 #include "address_bus.h"
 #include "utils.h"
 
-void Mapper2::initBus(AddressBus& addrBus) {
+void Mapper2::loadToAddrBus(AddressBus& addrBus) {
     for (int i = 0; i < 0x4000; i++) {
         AddressBus::Writer w;
         if (!getBit(i, 8)) {

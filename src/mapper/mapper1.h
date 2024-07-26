@@ -5,7 +5,7 @@
 class Mapper1 : public Mapper {
 public:
     Mapper1(const std::vector<uint8_t>& rom, std::vector<uint8_t>& ram) : Mapper(rom, ram) {}
-    void initBus(AddressBus& addrBus) override;
+    void loadToAddrBus(AddressBus& addrBus) override;
 public:
     uint32_t getROMAddress(uint16_t addr) const;
     uint16_t getRAMAddress(uint16_t addr) const;

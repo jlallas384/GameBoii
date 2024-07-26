@@ -15,3 +15,4 @@ std::unique_ptr<Mapper> Mapper::create(uint8_t type, const std::vector<uint8_t>&
             return nullptr;
     }
 }
+    
