@@ -18,6 +18,33 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\cartridge.cpp" />
+    <ClCompile Include="src\cpu\alu.cpp" />
+    <ClCompile Include="src\cpu\cpu.cpp" />
+    <ClCompile Include="src\game_boy.cpp" />
+    <ClCompile Include="src\mapper\mapper0.cpp" />
+    <ClCompile Include="src\cputest.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\address_bus.cpp" />
+    <ClCompile Include="src\mapper\mapper1.cpp" />
+    <ClCompile Include="src\mapper\mapper2.cpp" />
+    <ClCompile Include="src\tile.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\cartridge.h" />
+    <ClInclude Include="src\cpu\alu.h" />
+    <ClInclude Include="src\cpu\cpu.h" />
+    <ClInclude Include="src\cpu\flags.h" />
+    <ClInclude Include="src\game_boy.h" />
+    <ClInclude Include="src\mapper\mapper0.h" />
+    <ClInclude Include="src\address_bus.h" />
+    <ClInclude Include="src\mapper\mapper1.h" />
+    <ClInclude Include="src\mapper\mapper2.h" />
+    <ClInclude Include="src\tile.h" />
+    <ClInclude Include="src\timer.h" />
+    <ClInclude Include="src\utils.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -72,11 +99,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -112,7 +139,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,7 +155,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <AdditionalIncludeDirectories>$(SolutionDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,21 +166,6 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="addressbus.cpp" />
-    <ClCompile Include="alu.cpp" />
-    <ClCompile Include="cpu.cpp" />
-    <ClCompile Include="ioregs.cpp" />
-    <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="addressbus.h" />
-    <ClInclude Include="alu.h" />
-    <ClInclude Include="cpu.h" />
-    <ClInclude Include="flags.h" />
-    <ClInclude Include="ioregs.h" />
-    <ClInclude Include="mapped.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

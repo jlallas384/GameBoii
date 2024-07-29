@@ -1,56 +1,38 @@
 #include "cartridge.h"
+#include <utility>
+#include <memory>
+#include <fstream>
+#include "mapper/mapper0.h"
+#include "mapper/mapper1.h"
+#include "mapper/mapper2.h"
+#include "address_bus.h"
 
-Cartridge::Cartridge(std::ifstream &file) : rom(loadROM(file)), ram(ramSize()), mapper(createMapper()) {
+Cartridge::Cartridge(std::vector<uint8_t> &rom, uint32_t ramSize) : rom(std::move(rom)), ram(ramSize) {
 
 }
 
-void Cartridge::loadToAddrBus(AddressBus& addrBus) {
-    // TODO check mapper is not null
-    mapper->loadToAddrBus(addrBus);
+Cartridge::~Cartridge() {
+    std::ofstream saveFile(savePath, std::ios::binary);
+    saveFile.write(reinterpret_cast<char*>(ram.data()), ram.size());
 }
 
-std::vector<uint8_t> Cartridge::loadROM(std::ifstream& file) {
-    file.seekg(0x148);
-    auto value = file.peek(); // TODO error check
-    auto size = 32768 * (1 << value);
-    std::vector<uint8_t> ret(size);
-    file.read(reinterpret_cast<char*>(ret.data()), size);
-    return ret;
-}
-
-uint32_t Cartridge::ramSize() const {
-    switch (rom[0x149]) {
-        case 0x0:
-        case 0x1:
-            return 0;
-        case 0x2:
-            return 8192;
-        case 0x3:
-            return 32768;
-        case 0x4:
-            return 131072;
-        case 0x5:
-            return 65536;
-        default:
-            return 0;
-            // todo error;
+void Cartridge::loadRAM(std::filesystem::path path) {
+    if (std::filesystem::exists(path)) {
+        std::ifstream saveFile(path);
+        saveFile.read(reinterpret_cast<char*>(ram.data()), ram.size());
     }
+    savePath = path;
 }
 
-std::unique_ptr<Mapper> Cartridge::createMapper() {
-    switch (rom[0x147]) {
-        case 0x0:
-            return Mapper::create(0, rom, ram);
-        case 0x1:
-        case 0x2:
-        case 0x3:
-            return Mapper::create(1, rom, ram);
-        case 0x4:
-        case 0x5:
-            return Mapper::create(2, rom, ram);
-        case 0x11:
-        case 0x12:
-        case 0x13:
-            return Mapper::create(3, rom, ram);
+std::unique_ptr<Cartridge> Cartridge::create(MapperKind kind, std::vector<uint8_t> rom, uint32_t ramSize) {
+    switch (kind) {
+        case MapperKind::kNone:
+            return std::make_unique<Mapper0>(rom, ramSize);
+        case MapperKind::kMBC1:
+            return std::make_unique<Mapper1>(rom, ramSize);
+        case MapperKind::kMBC2:
+            return std::make_unique<Mapper2>(rom);
+        default:
+            return nullptr;
     }
 }

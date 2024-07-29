@@ -2,22 +2,27 @@
 
 #include <vector>
 #include <cstdint>
-#include <fstream>
 #include <memory>
-#include "mapper/mapper.h"
+#include <filesystem>
 
 class AddressBus;
 
+enum class MapperKind {
+    kNone,
+    kMBC1,
+    kMBC2
+};
+
 class Cartridge {
 public:
-    Cartridge(std::ifstream &file);
-    void loadToAddrBus(AddressBus& addrBus);
+    Cartridge(std::vector<uint8_t> &rom, uint32_t ramSize);
+    virtual ~Cartridge();
+    virtual void loadToAddrBus(AddressBus& addrBus) = 0;
+    void loadRAM(std::filesystem::path path);
+    static std::unique_ptr<Cartridge> create(MapperKind kind, std::vector<uint8_t> rom, uint32_t ramSize);
 private:
-    std::vector<uint8_t> loadROM(std::ifstream& file);
-    uint32_t ramSize() const;
-    std::unique_ptr<Mapper> createMapper();
-
+    std::filesystem::path savePath;
+protected:
     const std::vector<uint8_t> rom;
     std::vector<uint8_t> ram;
-    const std::unique_ptr<Mapper> mapper;
 };

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "mapper.h"
+#include "cartridge.h"
 
-class Mapper1 : public Mapper {
+class Mapper1 : public Cartridge {
 public:
-    Mapper1(const std::vector<uint8_t>& rom, std::vector<uint8_t>& ram) : Mapper(rom, ram) {}
+    Mapper1(std::vector<uint8_t>& rom, uint32_t ramSize) : Cartridge(rom, ramSize) {}
     void loadToAddrBus(AddressBus& addrBus) override;
 public:
     uint32_t getROMAddress(uint16_t addr) const;
