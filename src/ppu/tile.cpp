@@ -1,5 +1,4 @@
 #include "tile.h"
-#include <vector>
 #include "utils.h"
 
 Tile::Tile(std::span<const uint8_t> mem) {
