@@ -24,5 +24,5 @@ private:
 
     std::array<uint8_t, 1 << 13> vram{};
     std::array<uint8_t, 160> oam{};
-    uint8_t lcdc = 0, ly = 0;
+    uint8_t lcdc = 0, ly = 0, scy, scx;
 };

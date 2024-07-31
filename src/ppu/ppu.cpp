@@ -14,6 +14,15 @@ PPU::PPU(AddressBus& addrBus) {
         addrBus.setReader(0xfe00 + i, oam[i]);
         addrBus.setWriter(0xfe00 + i, oam[i]);
     }
+    addrBus.setWriter(0xff46, [&](uint8_t byte) {
+        for (int i = 0; i < 160; i++) {
+            oam[i] = addrBus.read((byte << 2) | i);
+        }
+    });
+    addrBus.setReader(0xff42, scy);
+    addrBus.setWriter(0xff42, scy);
+    addrBus.setReader(0xff43, scx);
+    addrBus.setWriter(0xff43, scx);
 }
 
 Tile PPU::getObjectTile(uint8_t index) const {
@@ -40,6 +49,7 @@ Tile PPU::getWindowTileAt(uint8_t i, uint8_t j) const {
 }
 
 Tile PPU::getBackgroundTileAt(uint8_t i, uint8_t j) const {
+    i = (i + scy) % 256, j = (j + scx) % 256;
     return getBit(lcdc, 3) ? getTileAtTileMap2(i, j) : getTileAtTileMap1(i, j);
 }
 
