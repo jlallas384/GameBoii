@@ -1,11 +1,12 @@
 #include "ppu.h"
 #include <algorithm>
+#include "irq_handler.h"
 #include "tile.h"
 #include "address_bus.h"
 #include "utils.h"
 #include "object_layer.h"
 
-PPU::PPU(AddressBus& addrBus) {
+PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) : lcd(std::move(lcd)), irqHandler(irqHandler) {
     for (int i = 0; i < (1 << 13); i++) {
         addrBus.setReader(0x8000 + i, vram[i]);
         addrBus.setWriter(0x8000 + i, vram[i]);
@@ -49,8 +50,24 @@ Tile PPU::getWindowTileAt(uint8_t i, uint8_t j) const {
 }
 
 Tile PPU::getBackgroundTileAt(uint8_t i, uint8_t j) const {
-    i = (i + scy) % 256, j = (j + scx) % 256;
     return getBit(lcdc, 3) ? getTileAtTileMap2(i, j) : getTileAtTileMap1(i, j);
+}
+
+uint8_t PPU::getBackgroundColorIdAt(uint8_t i, uint8_t j) const {
+    i = (i + scy) % 256, j = (j + scx) % 256;
+    Tile t = getBackgroundTileAt(i / 32, j / 32);
+    return t.at(i % 32, j % 32);
+}
+
+bool PPU::isIntersectAtWindow(uint8_t i, uint8_t j) const {
+    return wy <= i && wx - 7 <= j && j < wx - 7 + 256;
+}
+
+uint8_t PPU::getWindowColorIdAt(uint8_t i, uint8_t j) const {
+    i -= wy;
+    j -= wx - 7;
+    Tile t = getWindowTileAt(i / 32, j / 32);
+    return t.at(i % 32, j % 32);
 }
 
 ObjectLayer PPU::createObject(uint8_t index) const {
@@ -73,8 +90,43 @@ std::vector<ObjectLayer> PPU::getObjectsToRender() const {
             ret.push_back(object);
         }
     }
-    std::reverse(ret.begin(), ret.end());
     std::stable_sort(ret.begin(), ret.end());
     return ret;
 }
-    
+
+uint8_t PPU::getPaletteColor(uint8_t palette, uint8_t id) {
+    return (palette >> (id * 2)) & 0x3;
+}
+
+void PPU::doSingleScanline() {
+    auto objects = getObjectsToRender();
+    for (int x = 0; x < LCD::width; x++) {
+        uint8_t bgId = 4, bgColor = LCD::white;
+        if (getBit(lcdc, 0)) {
+            uint8_t id = getBackgroundColorIdAt(ly, x);
+            uint8_t color = getPaletteColor(bgp, id);
+            bgId = id, bgColor = color;
+            if (getBit(lcdc, 5) && isIntersectAtWindow(ly, x)) {
+                uint8_t id = getWindowColorIdAt(ly, x);
+                uint8_t color = getPaletteColor(bgp, id);
+                bgId = id, bgColor = color;
+            }
+        }
+        lcd->setPixel(ly, x, bgColor);
+        if (!getBit(lcdc, 1)) continue;
+        for (const auto& obj : objects) {
+            if (obj.isIntersectAtPoint(ly, x)) {
+                uint8_t id = obj.getColorIdAt(ly, x);
+                if (id == 0) continue;
+                uint8_t palette = obj.getPalette(obp0, obp1);
+                uint8_t color = getPaletteColor(palette, id);
+                if (obj.isDraw(bgId)) {
+                    lcd->setPixel(ly, x, color);
+                }
+                break;
+            }
+        }
+    }
+    ly++;
+}
+
