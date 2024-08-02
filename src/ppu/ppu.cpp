@@ -147,12 +147,12 @@ Tile PPU::getNonObjectTile(uint8_t index) const {
 }
 
 Tile PPU::getTileAtTileMap1(uint8_t i, uint8_t j) const {
-    auto index = i * 32 + j;
+    auto index = 0x1800 + i * 32 + j;
     return getNonObjectTile(vram[index]);
 }
 
 Tile PPU::getTileAtTileMap2(uint8_t i, uint8_t j) const {
-    auto index = 1024 + i * 32 + j;
+    auto index = 0x1c00 + i * 32 + j;
     return getNonObjectTile(vram[index]);
 }
 
