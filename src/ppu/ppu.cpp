@@ -166,7 +166,7 @@ Tile PPU::getBackgroundTileAt(uint8_t i, uint8_t j) const {
 
 uint8_t PPU::getBackgroundColorIdAt(uint8_t i, uint8_t j) const {
     i = (i + scy) % 256, j = (j + scx) % 256;
-    Tile t = getBackgroundTileAt(i / 32, j / 32);
+    Tile t = getBackgroundTileAt(i / 8, j / 8);
     return t.at(i % 8, j % 8);
 }
 
@@ -177,7 +177,7 @@ bool PPU::isIntersectAtWindow(uint8_t i, uint8_t j) const {
 uint8_t PPU::getWindowColorIdAt(uint8_t i, uint8_t j) const {
     i -= wy;
     j -= wx - 7;
-    Tile t = getWindowTileAt(i / 32, j / 32);
+    Tile t = getWindowTileAt(i / 8, j / 8);
     return t.at(i % 8, j % 8);
 }
 
