@@ -4,12 +4,9 @@
 #include <vector>
 #include <memory>
 #include "lcd.h"
+#include "object_layer.h"
 
 class AddressBus;
-class Tile;
-
-struct ObjectData;
-class ObjectLayer;
 class IRQHandler;
 
 class PPU {
@@ -21,7 +18,8 @@ private:
         kHBlank,
         kVBlank,
         kOAMScan,
-        kDrawing
+        kDrawing,
+        kSentinel
     };
     struct State {
         std::vector<ObjectLayer> scanlineObjects;
@@ -40,18 +38,19 @@ private:
     ObjectLayer createObject(uint8_t index) const;
     std::vector<ObjectLayer> getObjectsToRender() const;
 
-    void changeMode(Mode mode);
-    uint8_t getPaletteColor(uint8_t palette, uint8_t id);
+    uint8_t getPaletteColor(uint8_t palette, uint8_t id) const;
+    void doLYCompare();
     void doSingleDotDrawing();
+
 
     std::unique_ptr<LCD> lcd;
     IRQHandler& irqHandler;
     std::array<uint8_t, 1 << 13> vram{};
     std::array<uint8_t, 160> oam{};
     uint16_t tickCount = 0;
-    uint8_t lcdc = 0, ly = 0, scy = 0, scx = 0, wy = 0, wx = 0;
+    uint8_t lcdc = 0, ly = 0, lyc = 0, scy = 0, scx = 0, wy = 0, wx = 0;
     uint8_t bgp = 0, obp0 = 0, obp1 = 0;
-    uint8_t stat;
-    Mode currentMode = kOAMScan;
+    uint8_t stat = 0;
+    Mode currentMode = kSentinel, nextMode = kOAMScan;
     State state;
 };

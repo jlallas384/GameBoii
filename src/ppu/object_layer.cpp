@@ -34,7 +34,7 @@ uint8_t ObjectLayer::getPalette(uint8_t first, uint8_t second) const {
     return palette ? second : first;
 }
 
-bool ObjectLayer::isDraw(uint8_t bgId) const {
+bool ObjectLayer::isDrawn(uint8_t bgId) const {
     return !priority || !(1 <= bgId && bgId <= 3);
 }
 
