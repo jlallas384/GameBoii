@@ -15,7 +15,18 @@ class IRQHandler;
 class PPU {
 public:
     PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler);
+    void tick();
 private:
+    enum Mode {
+        kHBlank,
+        kVBlank,
+        kOAMScan,
+        kDrawing
+    };
+    struct State {
+        std::vector<ObjectLayer> scanlineObjects;
+        uint8_t x = 0;
+    };
     Tile getObjectTile(uint8_t index) const;
     Tile getNonObjectTile(uint8_t index) const;
     Tile getTileAtTileMap1(uint8_t i, uint8_t j) const;
@@ -29,12 +40,18 @@ private:
     ObjectLayer createObject(uint8_t index) const;
     std::vector<ObjectLayer> getObjectsToRender() const;
 
+    void changeMode(Mode mode);
     uint8_t getPaletteColor(uint8_t palette, uint8_t id);
-    void doSingleScanline();
+    void doSingleDotDrawing();
 
     std::unique_ptr<LCD> lcd;
     IRQHandler& irqHandler;
     std::array<uint8_t, 1 << 13> vram{};
     std::array<uint8_t, 160> oam{};
-    uint8_t lcdc = 0, ly = 0, scy = 0, scx = 0, wy = 0, wx = 0, bgp = 0, obp0 = 0, obp1 = 0;
+    uint16_t tickCount = 0;
+    uint8_t lcdc = 0, ly = 0, scy = 0, scx = 0, wy = 0, wx = 0;
+    uint8_t bgp = 0, obp0 = 0, obp1 = 0;
+    uint8_t stat;
+    Mode currentMode = kOAMScan;
+    State state;
 };
