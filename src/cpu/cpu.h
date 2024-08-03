@@ -30,7 +30,7 @@ private:
     void call(uint16_t addr);
 
     gb_int af, bc, de, hl, pc, sp;
-    bool ime = false;
+    bool ime = false, halted = false;
     AddressBus& addrBus;
     Flags flags;
     ALU alu;

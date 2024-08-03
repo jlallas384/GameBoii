@@ -2,10 +2,8 @@
 #include <algorithm>
 #include "utils.h"
 
-AddressBus::AddressBus() : readAddrs(1 << 16), writeAddrs(1 << 16){
-    std::fill(readAddrs.begin(), readAddrs.end(), [&]() {
-        return 0xff;
-    });
+AddressBus::AddressBus() : readAddrs(1 << 16), writeAddrs(1 << 16) {
+    std::fill(readAddrs.begin(), readAddrs.end(), [&]() { return 0xff; });
     std::fill(writeAddrs.begin(), writeAddrs.end(), [&](uint8_t byte) {});
 }
 

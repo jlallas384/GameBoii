@@ -18,7 +18,7 @@ Cartridge::~Cartridge() {
 
 void Cartridge::loadRAM(std::filesystem::path path) {
     if (std::filesystem::exists(path)) {
-        std::ifstream saveFile(path);
+        std::ifstream saveFile(path, std::ios::binary);
         saveFile.read(reinterpret_cast<char*>(ram.data()), ram.size());
     }
     savePath = path;
@@ -34,5 +34,19 @@ std::unique_ptr<Cartridge> Cartridge::create(MapperKind kind, std::vector<uint8_
             return std::make_unique<Mapper2>(rom);
         default:
             return nullptr;
+    }
+}
+
+uint8_t Cartridge::readROM(uint32_t addr) const {
+    return addr < rom.size() ? rom[addr] : 0xff;
+}
+
+uint8_t Cartridge::readRAM(uint32_t addr) const {
+    return addr < ram.size() ? ram[addr] : 0xff;
+}
+
+void Cartridge::writeRAM(uint32_t addr, uint8_t byte) {
+    if (addr < ram.size()) {
+        ram[addr] = byte;
     }
 }

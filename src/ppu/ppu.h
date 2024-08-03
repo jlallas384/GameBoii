@@ -19,7 +19,7 @@ public:
         kVBlank,
         kOAMScan,
         kDrawing,
-        kSentinel
+        kDisabled = 0x4
     };
     struct State {
         std::vector<ObjectLayer> scanlineObjects;
@@ -51,7 +51,6 @@ public:
     uint8_t lcdc = 0, ly = 0, lyc = 0, scy = 0, scx = 0, wy = 0, wx = 0;
     uint8_t bgp = 0, obp0 = 0, obp1 = 0;
     uint8_t stat = 0;
-    Mode currentMode = kSentinel, nextMode = kSentinel;
+    Mode currentMode = kDisabled, nextMode = kDisabled;
     State state;
-    bool enabled = false;
 };

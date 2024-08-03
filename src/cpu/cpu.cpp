@@ -8,12 +8,14 @@ CPU::CPU(AddressBus& addrBus) : addrBus(addrBus), flags(af.low), alu(flags) {
 }
 
 void CPU::tick() {
+    if (halted) return;
     if (ticksLeft) {
         ticksLeft--;
     } else {
         execute();
     }
 }
+
 
 void CPU::execute() {
     uint8_t op = fetch8();
@@ -755,6 +757,7 @@ void CPU::execute() {
         }
         case 0x76:
         {
+            halted = true;
             // TODO halt
             break;
         }

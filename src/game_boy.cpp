@@ -33,6 +33,12 @@ unsigned char DMG_ROM_bin[] = {
 unsigned int DMG_ROM_bin_len = 256;
 
 GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrBus), ppu(addrBus, std::move(lcd), irqHandler), timers(addrBus, irqHandler) {
+    addrBus.setReader(0xff00, [&]() {
+        return !getBit(joypadRegister, 5) ? joypadRegister | buttonsState : joypadRegister | dPadState;
+    });
+    addrBus.setWriter(0xff00, [&](uint8_t byte) {
+        joypadRegister = byte & 0xf0;
+    });
     for (int i = 0xff10; i <= 0xff26; i++) {
         addrBus.setReader(i, [&]() {
             return 0;
@@ -49,14 +55,14 @@ GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrB
 
         });
     }
-    for (int i = 0xff01; i <= 0xff02; i++) {
-        addrBus.setReader(i, [&]() {
-            return 0;
-        });
-        addrBus.setWriter(i, [&](uint8_t byte) {
+    uint8_t* x = new uint8_t(100);
+    addrBus.setReader(0xff01, *x);
+    addrBus.setWriter(0xff01, *x);
+    addrBus.setReader(0xff02, *x);
+    addrBus.setWriter(0xff02, [x](uint8_t byte) {
 
-        });
-    }
+    });
+
     addrBus.setWriter(0xff50, [&](uint8_t byte) {
         if (byte) {
             cartridge->loadToAddrBus(addrBus);
@@ -92,6 +98,7 @@ uint32_t getRAMSize(uint8_t value) {
 }
 
 std::unique_ptr<Cartridge> createCartidge(uint8_t value, std::vector<uint8_t>& rom, uint32_t ramSize) {
+    return Cartridge::create(MapperKind::kNone, rom, ramSize);
     switch (value) {
         case 0x0:
             return Cartridge::create(MapperKind::kNone, rom, ramSize);
@@ -143,5 +150,19 @@ void GameBoy::run() {
     timers.tick();
     timers.tick();
     irqHandler.handle();
+}
+
+void GameBoy::changeButtonState(Button button, bool on) {
+    if (!getBit(joypadRegister, 5) && getBit(buttonsState, button) && on) {
+        irqHandler.request(IRQHandler::KJoypad);
+    }
+    buttonsState = setBit(buttonsState, button, !on);
+}
+
+void GameBoy::changeDPadState(Button button, bool on) {
+    if (!getBit(joypadRegister, 4) && getBit(dPadState, button) && on) {
+        irqHandler.request(IRQHandler::KJoypad);
+    }
+    dPadState = setBit(dPadState, button, !on);
 }
 

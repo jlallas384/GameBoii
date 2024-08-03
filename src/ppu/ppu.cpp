@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "object_layer.h"
 
+
 PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) : lcd(std::move(lcd)), irqHandler(irqHandler) {
     for (int i = 0; i < (1 << 13); i++) {
         addrBus.setReader(0x8000 + i, [&, i]() {
@@ -34,15 +35,13 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
     });
     addrBus.setReader(0xff40, lcdc);
     addrBus.setWriter(0xff40, [&](uint8_t byte) {
-        bool newEnabled = getBit(byte, 7);
-        if (enabled && !newEnabled) {
-            nextMode = kSentinel;
-        } else if (!enabled && newEnabled) {
+        bool enabled = getBit(byte, 7);
+        if (currentMode != kDisabled && !enabled) {
+            nextMode = kDisabled;
+        } else if (currentMode == kDisabled && enabled) {
             nextMode = kOAMScan;
-            state.x = 0;
             ly = 0;
         }
-        enabled = newEnabled;
         lcdc = byte;
     });
 
@@ -82,8 +81,9 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
 void PPU::tick() {
     if (currentMode != nextMode) {
         currentMode = nextMode;
+        state.x = 0;
         tickCount = 0;
-        if (currentMode != kSentinel) stat = (stat & ~0x3) | currentMode;
+        stat = (stat & ~0x3) | (currentMode & 0x3);
     }
     tickCount++;
 
@@ -106,7 +106,6 @@ void PPU::tick() {
             }
             if (tickCount == 172) {
                 nextMode = kHBlank;
-                state.x = 0;
             }
             break;
         case kHBlank:
@@ -119,7 +118,6 @@ void PPU::tick() {
                     nextMode = kOAMScan;
                 } else {
                     nextMode = kVBlank;
-
                 }
             }
             break;
@@ -141,7 +139,7 @@ void PPU::tick() {
                 ly = 0;
             }
             break;
-        case kSentinel:
+        case kDisabled:
             break;
     }
 }
@@ -152,7 +150,7 @@ Tile PPU::getObjectTile(uint8_t index) const {
 
 Tile PPU::getNonObjectTile(uint8_t index) const {
     return getBit(lcdc, 4) ? Tile(std::span(vram.begin() + index * 16, 16))
-       : Tile(std::span(vram.begin() + 0x1000 + static_cast<int8_t>(index) * 16, 16));
+        : Tile(std::span(vram.begin() + 0x1000 + static_cast<int8_t>(index) * 16, 16));
 }
 
 Tile PPU::getTileAtTileMap1(uint8_t i, uint8_t j) const {
@@ -166,7 +164,7 @@ Tile PPU::getTileAtTileMap2(uint8_t i, uint8_t j) const {
 }
 
 Tile PPU::getWindowTileAt(uint8_t i, uint8_t j) const {
-    return getBit(lcdc, 7) ? getTileAtTileMap2(i, j) : getTileAtTileMap1(i, j);
+    return getBit(lcdc, 6) ? getTileAtTileMap2(i, j) : getTileAtTileMap1(i, j);
 }
 
 Tile PPU::getBackgroundTileAt(uint8_t i, uint8_t j) const {

@@ -23,6 +23,9 @@ public:
 private:
     std::filesystem::path savePath;
 protected:
+    uint8_t readROM(uint32_t addr) const;
+    uint8_t readRAM(uint32_t addr) const;
+    void writeRAM(uint32_t addr, uint8_t byte);
     const std::vector<uint8_t> rom;
     std::vector<uint8_t> ram;
 };

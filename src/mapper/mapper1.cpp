@@ -29,7 +29,7 @@ void Mapper1::loadToAddrBus(AddressBus& addrBus) {
             return rom[getROMAddress(i)];
         });
     }
-    for (int i = 0xa0000; i < 0xc0000; i++) {
+    for (int i = 0xa000; i < 0xc000; i++) {
         addrBus.setReader(i, [&, i]() {
             return ramEnable ? ram[getRAMAddress(i)] : 0xff;
         });
