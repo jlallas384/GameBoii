@@ -13,7 +13,7 @@ class PPU {
 public:
     PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler);
     void tick();
-private:
+public:
     enum Mode {
         kHBlank,
         kVBlank,
@@ -51,6 +51,7 @@ private:
     uint8_t lcdc = 0, ly = 0, lyc = 0, scy = 0, scx = 0, wy = 0, wx = 0;
     uint8_t bgp = 0, obp0 = 0, obp1 = 0;
     uint8_t stat = 0;
-    Mode currentMode = kSentinel, nextMode = kOAMScan;
+    Mode currentMode = kSentinel, nextMode = kSentinel;
     State state;
+    bool enabled = false;
 };

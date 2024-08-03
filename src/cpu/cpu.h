@@ -4,7 +4,6 @@
 #include "flags.h"
 #include "alu.h"
 
-
 struct gb_int {
     gb_int() {}
     gb_int(int value) : high(static_cast<uint8_t>(value >> 8)), low(value & 0xff) {}
@@ -19,8 +18,9 @@ class AddressBus;
 class CPU {
 public:
     CPU(AddressBus& addrBus);
-    void execute();
+    void tick();
 private:
+    void execute();
     void executeCB();
     uint8_t fetch8();
     uint16_t fetch16();
@@ -34,7 +34,7 @@ private:
     AddressBus& addrBus;
     Flags flags;
     ALU alu;
-
+    uint8_t ticksLeft = 0;
     friend class IRQHandler;
 };
 

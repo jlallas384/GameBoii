@@ -1,21 +1,23 @@
 #pragma once
 
-#include <memory>
 #include <cstdint>
-#include "mapped.h"
 
 class CPU;
+class AddressBus;
 
 class IRQHandler {
 public:
-    IRQHandler(CPU& cpu);
+    enum RequestKind {
+        kVBlank,
+        kStat,
+        kTimer,
+        kSerial,
+        KJoypad
+    };
+    IRQHandler(CPU& cpu, AddressBus& addrBus);
     void handle();
-    void requestVBlank();
-    void requestStat();
-    void requestTimer();
-    void requestSerial();
-    void requestJoypad();
+    void request(RequestKind rk);
 private:
     CPU& cpu;
-    std::unique_ptr<SingleAddrMapped> intEnable, intFlag;
+    uint8_t intEnable = 0, intFlag = 0;
 };

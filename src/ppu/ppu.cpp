@@ -33,7 +33,18 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
         }
     });
     addrBus.setReader(0xff40, lcdc);
-    addrBus.setWriter(0xff40, lcdc);
+    addrBus.setWriter(0xff40, [&](uint8_t byte) {
+        bool newEnabled = getBit(byte, 7);
+        if (enabled && !newEnabled) {
+            nextMode = kSentinel;
+        } else if (!enabled && newEnabled) {
+            nextMode = kOAMScan;
+            state.x = 0;
+            ly = 0;
+        }
+        enabled = newEnabled;
+        lcdc = byte;
+    });
 
     addrBus.setReader(0xff41, stat);
     addrBus.setWriter(0xff41, [&](uint8_t byte) {
@@ -45,9 +56,7 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
     addrBus.setReader(0xff43, scx);
     addrBus.setWriter(0xff43, scx);
 
-    addrBus.setReader(0xff44, [&]() {
-        return ly;
-    });
+    addrBus.setReader(0xff44, ly);
     addrBus.setWriter(0xff44, ly);
 
     addrBus.setReader(0xff45, lyc);
@@ -74,7 +83,7 @@ void PPU::tick() {
     if (currentMode != nextMode) {
         currentMode = nextMode;
         tickCount = 0;
-        stat = (stat & ~0x3) | currentMode;
+        if (currentMode != kSentinel) stat = (stat & ~0x3) | currentMode;
     }
     tickCount++;
 

@@ -1,12 +1,13 @@
 #pragma once
 #include <functional>
-#include <array>
+#include <vector>
 
 class AddressBus {
 public:
     using Reader = std::function<uint8_t()>;
     using Writer = std::function<void(uint8_t)>;
 
+    AddressBus();
     uint8_t read(uint16_t addr) const;
     void write(uint16_t addr, uint8_t byte);
     bool readBit(uint16_t addr, uint8_t bit) const;
@@ -16,6 +17,6 @@ public:
     void setWriter(uint16_t addr, Writer writer);
     void setWriter(uint16_t addr, uint8_t& val);
 private:
-    std::array<Reader, 1 << 16> readAddrs;
-    std::array<Writer, 1 << 16> writeAddrs;
+    std::vector<Reader> readAddrs;
+    std::vector<Writer> writeAddrs;
 };

@@ -1,39 +1,27 @@
 #include "irq_handler.h"
 
-#include "cpu.h"
+#include "cpu/cpu.h"
 #include "utils.h"
+#include "address_bus.h"
 
-IRQHandler::IRQHandler(CPU& cpu) : cpu(cpu) {
-
+IRQHandler::IRQHandler(CPU& cpu, AddressBus& addrBus) : cpu(cpu) { 
+    addrBus.setReader(0xffff, intEnable);
+    addrBus.setWriter(0xffff, intEnable);
+    addrBus.setReader(0xff0f, intFlag);
+    addrBus.setWriter(0xff0f, intFlag);
 }
 
 void IRQHandler::handle() {
     if (!cpu.ime) return;
     for (int i = 0; i < 5; i++) {
-        if (getBit(intEnable->read(), i) && getBit(intFlag->read(), i)) {
+        if (getBit(intEnable, i) && getBit(intFlag, i)) {
             cpu.ime = false;
-            intFlag->writeBit(i, false);
+            intFlag = setBit(intFlag, i, false);
             return cpu.call(0x40 + 0x8 * i);
         }
     }
 }
 
-void IRQHandler::requestVBlank() {
-    intFlag->writeBit(0, true);
-}
-
-void IRQHandler::requestStat() {
-    intFlag->writeBit(1, true);
-}
-
-void IRQHandler::requestTimer() {
-    intFlag->writeBit(2, true);
-}
-
-void IRQHandler::requestSerial() {
-    intFlag->writeBit(3, true);
-}
-
-void IRQHandler::requestJoypad() {
-    intFlag->writeBit(4, true);
+void IRQHandler::request(RequestKind rk) {
+    intFlag = setBit(intFlag, rk, true);
 }

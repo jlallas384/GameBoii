@@ -7,6 +7,14 @@ CPU::CPU(AddressBus& addrBus) : addrBus(addrBus), flags(af.low), alu(flags) {
 
 }
 
+void CPU::tick() {
+    if (ticksLeft) {
+        ticksLeft--;
+    } else {
+        execute();
+    }
+}
+
 void CPU::execute() {
     uint8_t op = fetch8();
     switch (op) {
@@ -75,6 +83,7 @@ void CPU::execute() {
             uint8_t imme = fetch8();
             uint8_t& dest = getRegister(op >> 3 & 0x7);
             dest = imme;
+            ticksLeft = 1;
             break;
         }
         case 0x46:
@@ -100,6 +109,7 @@ void CPU::execute() {
         {
             uint8_t byte = getRegister(op & 0x7);
             addrBus.write(hl, byte);
+            ticksLeft = 1;
             break;
         }
         case 0x36:
@@ -118,6 +128,7 @@ void CPU::execute() {
         {
             uint8_t byte = addrBus.read(de);
             af.high = byte;
+            ticksLeft = 1;
             break;
         }
         case 0xf2:
@@ -130,6 +141,7 @@ void CPU::execute() {
         {
             uint8_t byte = af.high;
             addrBus.write(0xff00 + bc.low, byte);
+            ticksLeft = 1;
             break;
         }
         case 0xf0:
@@ -137,12 +149,14 @@ void CPU::execute() {
             uint8_t imme = fetch8();
             uint8_t byte = addrBus.read(0xff00 + imme);
             af.high = byte;
+            ticksLeft = 2;
             break;
         }
         case 0xe0:
         {
             uint8_t imme = fetch8();
             addrBus.write(0xff00 + imme, af.high);
+            ticksLeft = 2;
             break;
         }
         case 0xfa:
@@ -156,6 +170,7 @@ void CPU::execute() {
         {
             uint16_t addr = fetch16();
             addrBus.write(addr, af.high);
+            ticksLeft = 3;
             break;
         }
         case 0x2a:
@@ -189,6 +204,7 @@ void CPU::execute() {
             uint8_t byte = af.high;
             addrBus.write(hl, byte);
             hl = hl + 1;
+            ticksLeft = 1;
             break;
         }
         case 0x32:
@@ -196,6 +212,7 @@ void CPU::execute() {
             uint8_t byte = af.high;
             addrBus.write(hl, byte);
             hl = hl - 1;
+            ticksLeft = 1;
             break;
         }
 
@@ -208,6 +225,7 @@ void CPU::execute() {
             gb_int& dest = getRegisterPair(op >> 4 & 0x3);
             uint16_t imme = fetch16();
             dest = imme;
+            ticksLeft = 2;
             break;
         }
         case 0xf9:
@@ -223,6 +241,7 @@ void CPU::execute() {
             addrBus.write(sp - 1, src.high);
             addrBus.write(sp - 2, src.low);
             sp = sp - 2;
+            ticksLeft = 3;
             break;
         }
         case 0xf5:
@@ -240,6 +259,7 @@ void CPU::execute() {
             dest.low = addrBus.read(sp);
             dest.high = addrBus.read(sp + 1);
             sp = sp + 2;
+            ticksLeft = 2;
             break;
         }
         case 0xf1:
@@ -289,6 +309,7 @@ void CPU::execute() {
         {
             uint8_t byte = addrBus.read(hl);
             af.high = alu.add(af.high, byte);
+            ticksLeft = 1;
             break;
         }
         case 0x88:
@@ -451,12 +472,14 @@ void CPU::execute() {
         {
             uint8_t imme = fetch8();
             alu.sub(af.high, imme);
+            ticksLeft = 1;
             break;
         }
         case 0xbe:
         {
             uint8_t byte = addrBus.read(hl);
             alu.sub(af.high, byte);
+            ticksLeft = 1;
             break;
         }
         case 0x4:
@@ -526,6 +549,7 @@ void CPU::execute() {
         {
             gb_int& value = getRegisterPair(op >> 4 & 0x3);
             value = value + 1;
+            ticksLeft = 1;
             break;
         }
         case 0xb:
@@ -583,6 +607,7 @@ void CPU::execute() {
         {
             int8_t imme = fetch8();
             pc = pc + imme;
+            ticksLeft = 2;
             break;
         }
         case 0x20:
@@ -594,6 +619,9 @@ void CPU::execute() {
             bool cond = getCondition(op >> 3 & 0x3);
             if (cond) {
                 pc = pc + imme;
+                ticksLeft = 2;
+            } else {
+                ticksLeft = 1;
             }
             break;
         }
@@ -608,6 +636,7 @@ void CPU::execute() {
         {
             uint16_t addr = fetch16();
             call(addr);
+            ticksLeft = 5;
             break;
         }
         case 0xc4:
@@ -627,6 +656,7 @@ void CPU::execute() {
             pc.low = addrBus.read(sp);
             pc.high = addrBus.read(sp + 1);
             sp = sp + 2;
+            ticksLeft = 3;
             break;
         }
         case 0xd9:
@@ -777,6 +807,7 @@ void CPU::executeCB() {
             uint8_t& byte = getRegister(op & 0x7);
             byte = alu.rl(byte);
             flags.setZ(byte == 0);
+            ticksLeft = 1;
             break;
         }
         case 0x16:
@@ -967,6 +998,7 @@ void CPU::executeCB() {
             flags.setZ(!getBit(byte, bit));
             flags.setN(false);
             flags.setH(true);
+            ticksLeft = 1;
             break;
         }
         case 0x46:

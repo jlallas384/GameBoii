@@ -101,7 +101,7 @@ public:
 private:
     void run(int to) {
         while (c.pc != to) {
-            c.execute();
+            c.tick();
         }
     }
     States init, final;
