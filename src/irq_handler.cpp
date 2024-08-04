@@ -6,23 +6,22 @@
 
 IRQHandler::IRQHandler(CPU& cpu, AddressBus& addrBus) : cpu(cpu) { 
     addrBus.setReader(0xffff, intEnable);
-    addrBus.setWriter(0xffff, [&](uint8_t byte) {
-        intEnable = byte & 0x1f;
+    addrBus.setWriter(0xffff, intEnable);
+    addrBus.setReader(0xff0f, [&]() {
+        return intFlag | 0xe0;
     });
-    addrBus.setReader(0xff0f, intFlag);
-    addrBus.setWriter(0xff0f, [&](uint8_t byte) {
-        intFlag = byte & 0x1f;
-    });
+    addrBus.setWriter(0xff0f, intFlag);
 }
 
 void IRQHandler::handle() {
-    if (!cpu.ime) return;
     for (int i = 0; i < 5; i++) {
         if (getBit(intEnable, i) && getBit(intFlag, i)) {
             cpu.halted = false;
-            cpu.ime = false;
-            intFlag = setBit(intFlag, i, false);
-            return cpu.call(0x40 + 0x8 * i);
+            if (cpu.ime) {
+                cpu.ime = false;
+                intFlag = setBit(intFlag, i, false);
+                return cpu.call(0x40 + 0x8 * i);
+            }
         }
     }
 }
