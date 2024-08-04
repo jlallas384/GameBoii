@@ -26,23 +26,23 @@ void Mapper1::loadToAddrBus(AddressBus& addrBus) {
     }
     for (int i = 0; i < 0x8000; i++) {
         addrBus.setReader(i, [&, i]() {
-            return rom[getROMAddress(i)];
+            return readROM(getROMAddress(i));
         });
     }
     for (int i = 0xa000; i < 0xc000; i++) {
         addrBus.setReader(i, [&, i]() {
-            return ramEnable ? ram[getRAMAddress(i)] : 0xff;
+            return ramEnable ? readRAM(getRAMAddress(i)) : 0xff;
         });
         addrBus.setWriter(i, [&, i](uint8_t byte) {
             if (ramEnable) {
-                ram[getRAMAddress(i)] = byte;
+                writeRAM(getRAMAddress(i), byte);
             }
         });
     }
 }
 
 uint32_t Mapper1::getROMAddress(uint16_t addr) const {
-    uint8_t mask = (rom.size() >> 15) - 1;
+    uint8_t mask = (rom.size() >> 14) - 1;
     uint8_t bankNumber = 0;
     if (addr < 0x4000) {
         if (mode) {
