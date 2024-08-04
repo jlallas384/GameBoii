@@ -5,7 +5,7 @@
 #include <exception>
 #include "cartridge.h"
 
-unsigned char DMG_ROM_bin[] = {
+const uint8_t bootROM[] = {
   0x31, 0xfe, 0xff, 0x21, 0xff, 0x9f, 0xaf, 0x32, 0xcb, 0x7c, 0x20, 0xfa,
   0x0e, 0x11, 0x21, 0x26, 0xff, 0x3e, 0x80, 0x32, 0xe2, 0x0c, 0x3e, 0xf3,
   0x32, 0xe2, 0x0c, 0x3e, 0x77, 0x32, 0xe2, 0x11, 0x04, 0x01, 0x21, 0x10,
@@ -30,15 +30,11 @@ unsigned char DMG_ROM_bin[] = {
   0x3e, 0x01, 0xe0, 0x50
 };
 
-unsigned int DMG_ROM_bin_len = 256;
+GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrBus), ppu(addrBus, std::move(lcd), irqHandler), joypad(addrBus, irqHandler), timers(addrBus, irqHandler) {
+    for (int i = 0; i < 256; i++) {
+        addrBus.setReader(i, bootROM[i]);
+    }
 
-GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrBus), ppu(addrBus, std::move(lcd), irqHandler), timers(addrBus, irqHandler) {
-    addrBus.setReader(0xff00, [&]() {
-        return !getBit(joypadRegister, 5) ? joypadRegister | buttonsState : joypadRegister | dPadState;
-    });
-    addrBus.setWriter(0xff00, [&](uint8_t byte) {
-        joypadRegister = byte & 0xf0;
-    });
     for (int i = 0xff10; i <= 0xff26; i++) {
         addrBus.setReader(i, [&]() {
             return 0;
@@ -55,27 +51,26 @@ GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrB
 
         });
     }
-    uint8_t* x = new uint8_t(100);
-    addrBus.setReader(0xff01, *x);
-    addrBus.setWriter(0xff01, *x);
-    addrBus.setReader(0xff02, *x);
-    addrBus.setWriter(0xff02, [x](uint8_t byte) {
-
-    });
 
     addrBus.setWriter(0xff50, [&](uint8_t byte) {
-        if (byte) {
+        if (byte && cartridge) {
             cartridge->loadToAddrBus(addrBus);
         }
     });
+
     for (int i = 0; i < hram.size(); i++) {
         addrBus.setReader(0xff80 + i, hram[i]);
         addrBus.setWriter(0xff80 + i, hram[i]);
     }
+
     for (int i = 0; i < wram.size(); i++) {
         addrBus.setReader(0xc000 + i, wram[i]);
         addrBus.setWriter(0xc000 + i, wram[i]);
     }
+}
+
+Joypad& GameBoy::getJoypad() {
+    return joypad;
 }
 
 uint32_t getRAMSize(uint8_t value) {
@@ -134,9 +129,6 @@ void GameBoy::loadCartridge(std::filesystem::path path) {
     cartridge = createCartidge(rom[0x147], rom, ramSize);
     cartridge->loadRAM(path.replace_extension("sav"));
     cartridge->loadToAddrBus(addrBus);
-    for (int i = 0; i < DMG_ROM_bin_len; i++) {
-        addrBus.setReader(i, DMG_ROM_bin[i]);
-    }
 }
 
 void GameBoy::run() {
@@ -151,18 +143,3 @@ void GameBoy::run() {
     timers.tick();
     irqHandler.handle();
 }
-
-void GameBoy::changeButtonState(Button button, bool on) {
-    if (!getBit(joypadRegister, 5) && getBit(buttonsState, button) && on) {
-        irqHandler.request(IRQHandler::KJoypad);
-    }
-    buttonsState = setBit(buttonsState, button, !on);
-}
-
-void GameBoy::changeDPadState(Button button, bool on) {
-    if (!getBit(joypadRegister, 4) && getBit(dPadState, button) && on) {
-        irqHandler.request(IRQHandler::KJoypad);
-    }
-    dPadState = setBit(dPadState, button, !on);
-}
-

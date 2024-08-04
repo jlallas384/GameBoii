@@ -2,12 +2,10 @@
 
 #include <memory>
 #include "sdl_lcd.h"
-
 #include "timer.h"
 #include <iostream>
-#define private public
 #include "game_boy.h"
-#undef private
+
 std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 int main() {
     SDL_SetMainReady();
@@ -18,59 +16,63 @@ int main() {
 
     std::unique_ptr<SDLLCD> lcd = std::make_unique<SDLLCD>(window);
     GameBoy gb(std::move(lcd));
-    gb.loadCartridge("./tetris.gb");
+    Joypad& joypad = gb.getJoypad();
     SDL_Event e;
     bool quit = false;
     begin = std::chrono::steady_clock::now();
     while (quit == false) {
         while (SDL_PollEvent(&e)) {
+            if (e.type == SDL_DROPFILE) {
+                gb.loadCartridge(e.drop.file);
+                SDL_free(e.drop.file);
+            }
             if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
                     case SDLK_LEFT:
-                        gb.changeDPadState(GameBoy::kLeft, true);
+                        joypad.press(DPadKind::kLeft);
                         break;
                     case SDLK_DOWN:
-                        gb.changeDPadState(GameBoy::kDown, true);
+                        joypad.press(DPadKind::kDown);
                         break;
                     case SDLK_RIGHT:
-                        gb.changeDPadState(GameBoy::kRight, true);
+                        joypad.press(DPadKind::kRight);
                         break;
                     case SDLK_UP:
-                        gb.changeDPadState(GameBoy::kUp, true);
+                        joypad.press(DPadKind::kUp);
                         break;
                     case SDLK_z:
-                        gb.changeButtonState(GameBoy::kA, true);
+                        joypad.press(ButtonKind::kA);
                         break;
                     case SDLK_x:
-                        gb.changeButtonState(GameBoy::kB, true);
+                        joypad.press(ButtonKind::kB);
                         break;
                     case SDLK_SPACE:
-                        gb.changeButtonState(GameBoy::kStart, true);
+                        joypad.press(ButtonKind::kStart);
                         break;
                 }
             }
             if (e.type == SDL_KEYUP) {
                 switch (e.key.keysym.sym) {
                     case SDLK_LEFT:
-                        gb.changeDPadState(GameBoy::kLeft, false);
+                        joypad.unpress(DPadKind::kLeft);
                         break;
                     case SDLK_DOWN:
-                        gb.changeDPadState(GameBoy::kDown, false);
+                        joypad.unpress(DPadKind::kDown);
                         break;
                     case SDLK_RIGHT:
-                        gb.changeDPadState(GameBoy::kRight, false);
+                        joypad.unpress(DPadKind::kRight);
                         break;
                     case SDLK_UP:
-                        gb.changeDPadState(GameBoy::kUp, false);
+                        joypad.unpress(DPadKind::kUp);
                         break;
                     case SDLK_z:
-                        gb.changeButtonState(GameBoy::kA, false);
+                        joypad.unpress(ButtonKind::kA);
                         break;
                     case SDLK_x:
-                        gb.changeButtonState(GameBoy::kB, false);
+                        joypad.unpress(ButtonKind::kB);
                         break;
                     case SDLK_SPACE:
-                        gb.changeButtonState(GameBoy::kStart, false);
+                        joypad.unpress(ButtonKind::kStart);
                         break;
                 }
             }
