@@ -2,7 +2,7 @@
 #include <exception>
 #include "address_bus.h"
 #include "utils.h"
-#include <iostream>
+
 CPU::CPU(AddressBus& addrBus) : addrBus(addrBus), flags(af.low), alu(flags) {
 
 }

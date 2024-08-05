@@ -12,8 +12,9 @@ class IRQHandler;
 class PPU {
 public:
     PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler);
+    void reset();
     void tick();
-public:
+private:
     enum Mode {
         kHBlank,
         kVBlank,
@@ -24,6 +25,9 @@ public:
     struct State {
         std::vector<ObjectLayer> scanlineObjects;
         uint8_t x = 0;
+        int16_t dmaIndex = -8;
+        bool dmaActive = false;
+        uint8_t source;
     };
     Tile getObjectTile(uint8_t index) const;
     Tile getNonObjectTile(uint8_t index) const;
@@ -42,9 +46,10 @@ public:
     void doLYCompare();
     void doSingleDotDrawing();
 
-
+    AddressBus& addrBus;
     std::unique_ptr<LCD> lcd;
     IRQHandler& irqHandler;
+
     std::array<uint8_t, 1 << 13> vram{};
     std::array<uint8_t, 160> oam{};
     uint16_t tickCount = 0;

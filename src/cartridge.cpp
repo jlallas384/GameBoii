@@ -5,6 +5,7 @@
 #include "mapper/mapper0.h"
 #include "mapper/mapper1.h"
 #include "mapper/mapper2.h"
+#include "mapper/mapper3.h"
 #include "address_bus.h"
 
 Cartridge::Cartridge(std::vector<uint8_t> &rom, uint32_t ramSize) : rom(std::move(rom)), ram(ramSize) {
@@ -12,8 +13,10 @@ Cartridge::Cartridge(std::vector<uint8_t> &rom, uint32_t ramSize) : rom(std::mov
 }
 
 Cartridge::~Cartridge() {
-    std::ofstream saveFile(savePath, std::ios::binary);
-    saveFile.write(reinterpret_cast<char*>(ram.data()), ram.size());
+    if (!savePath.empty()) {
+        std::ofstream saveFile(savePath, std::ios::binary);
+        saveFile.write(reinterpret_cast<char*>(ram.data()), ram.size());
+    }
 }
 
 void Cartridge::loadRAM(std::filesystem::path path) {
@@ -32,6 +35,8 @@ std::unique_ptr<Cartridge> Cartridge::create(MapperKind kind, std::vector<uint8_
             return std::make_unique<Mapper1>(rom, ramSize);
         case MapperKind::kMBC2:
             return std::make_unique<Mapper2>(rom);
+        case MapperKind::kMBC3:
+            return std::make_unique<Mapper3>(rom, ramSize);
         default:
             return nullptr;
     }

@@ -10,7 +10,8 @@ class AddressBus;
 enum class MapperKind {
     kNone,
     kMBC1,
-    kMBC2
+    kMBC2,
+    kMBC3
 };
 
 class Cartridge {

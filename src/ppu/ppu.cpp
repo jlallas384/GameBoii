@@ -5,9 +5,9 @@
 #include "address_bus.h"
 #include "utils.h"
 #include "object_layer.h"
+#include <iostream>
 
-
-PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) : lcd(std::move(lcd)), irqHandler(irqHandler) {
+PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) : addrBus(addrBus), lcd(std::move(lcd)), irqHandler(irqHandler) {
     for (int i = 0; i < (1 << 13); i++) {
         addrBus.setReader(0x8000 + i, [&, i]() {
             return currentMode != kDrawing ? vram[i] : 0xff;
@@ -29,9 +29,9 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
         });
     }
     addrBus.setWriter(0xff46, [&](uint8_t byte) {
-        for (int i = 0; i < 160; i++) {
-            oam[i] = addrBus.read((byte << 8) | i);
-        }
+        state.source = byte;
+        state.dmaActive = true;
+        state.dmaIndex = -8;
     });
     addrBus.setReader(0xff40, lcdc);
     addrBus.setWriter(0xff40, [&](uint8_t byte) {
@@ -78,7 +78,26 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
     addrBus.setWriter(0xff49, obp1);
 }
 
+void PPU::reset() {
+    state.x = 0;
+    state.dmaActive = false;
+    currentMode = kDisabled;
+    nextMode = kDisabled;
+    stat = 0;
+    tickCount = 0;
+    lcdc = 0;
+}
+
 void PPU::tick() {
+    if (state.dmaActive) {
+        state.dmaIndex++;
+        if (state.dmaIndex >= 0 && state.dmaIndex % 4 == 0) {
+            oam[state.dmaIndex / 4] = addrBus.read((state.source << 8) | (state.dmaIndex / 4));
+            if (state.dmaIndex / 4 == oam.size() - 1) {
+                state.dmaActive = false;
+            }
+        }
+    }
     if (currentMode != nextMode) {
         currentMode = nextMode;
         state.x = 0;
