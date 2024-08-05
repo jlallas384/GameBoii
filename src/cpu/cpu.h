@@ -19,6 +19,7 @@ class CPU {
 public:
     CPU(AddressBus& addrBus);
     void tick();
+    void reset();
 private:
     void execute();
     void executeCB();
