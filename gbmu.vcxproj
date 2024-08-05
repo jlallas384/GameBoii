@@ -24,11 +24,13 @@
     <ClCompile Include="src\cpu\cpu.cpp" />
     <ClCompile Include="src\game_boy.cpp" />
     <ClCompile Include="src\irq_handler.cpp" />
+    <ClCompile Include="src\joypad.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\mapper\mapper0.cpp" />
     <ClCompile Include="src\address_bus.cpp" />
     <ClCompile Include="src\mapper\mapper1.cpp" />
     <ClCompile Include="src\mapper\mapper2.cpp" />
+    <ClCompile Include="src\mapper\mapper3.cpp" />
     <ClCompile Include="src\ppu\object_layer.cpp" />
     <ClCompile Include="src\ppu\ppu.cpp" />
     <ClCompile Include="src\ppu\tile.cpp" />
@@ -42,16 +44,17 @@
     <ClInclude Include="src\cpu\flags.h" />
     <ClInclude Include="src\game_boy.h" />
     <ClInclude Include="src\irq_handler.h" />
+    <ClInclude Include="src\joypad.h" />
     <ClInclude Include="src\mapper\mapper0.h" />
     <ClInclude Include="src\address_bus.h" />
     <ClInclude Include="src\mapper\mapper1.h" />
     <ClInclude Include="src\mapper\mapper2.h" />
+    <ClInclude Include="src\mapper\mapper3.h" />
     <ClInclude Include="src\ppu\lcd.h" />
     <ClInclude Include="src\ppu\object_layer.h" />
     <ClInclude Include="src\ppu\ppu.h" />
     <ClInclude Include="src\ppu\tile.h" />
     <ClInclude Include="src\sdl_lcd.h" />
-    <ClInclude Include="src\timer.h" />
     <ClInclude Include="src\timers.h" />
     <ClInclude Include="src\utils.h" />
   </ItemGroup>

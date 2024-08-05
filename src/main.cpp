@@ -2,7 +2,6 @@
 
 #include <memory>
 #include "sdl_lcd.h"
-#include "timer.h"
 #include <iostream>
 #include "game_boy.h"
 
@@ -11,7 +10,7 @@ int main() {
     SDL_SetMainReady();
     SDL_Window* window = nullptr;
     SDL_Init(SDL_INIT_VIDEO);
-    window = SDL_CreateWindow("gbmu", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 160 * 3, 144 * 3, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("gbmu", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 160 * 2, 144 * 2, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
 
     std::unique_ptr<SDLLCD> lcd = std::make_unique<SDLLCD>(window);
@@ -19,7 +18,6 @@ int main() {
     Joypad& joypad = gb.getJoypad();
     SDL_Event e;
     bool quit = false;
-    begin = std::chrono::steady_clock::now();
     while (quit == false) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_DROPFILE) {

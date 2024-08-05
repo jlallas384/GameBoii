@@ -9,6 +9,7 @@ public:
     void refresh() override;
     void setPixel(uint8_t i, uint8_t j, uint8_t color) override;
 private:
-    SDL_Window* window;
-    SDL_Surface* surface;
+    Uint32 buffer[height][width] = { 0 };
+    SDL_Renderer* renderer;
+    SDL_Texture* texture;
 };
