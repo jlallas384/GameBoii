@@ -143,10 +143,13 @@ void PPU::tick() {
         case kVBlank:
             if (tickCount == 1) {
                 doLYCompare();
-                if (getBit(stat, 1)) {
-                    irqHandler.request(IRQHandler::kStat);
+                if (ly == 144) {
+                    if (getBit(stat, 4)) {
+                        irqHandler.request(IRQHandler::kStat);
+                    }
+                    irqHandler.request(IRQHandler::kVBlank);
+                    lcd->refresh();
                 }
-                irqHandler.request(IRQHandler::kVBlank);
             }
             if (tickCount == 456) {
                 ly++;
@@ -154,7 +157,6 @@ void PPU::tick() {
             }
             if (ly == 154) {
                 nextMode = kOAMScan;
-                lcd->refresh();
                 ly = 0;
             }
             break;
