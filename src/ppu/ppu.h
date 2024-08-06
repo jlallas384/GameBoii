@@ -40,7 +40,6 @@ private:
     uint8_t getWindowColorIdAt(uint8_t i, uint8_t j) const;
 
     ObjectLayer createObject(uint8_t index) const;
-    std::vector<ObjectLayer> getObjectsToRender() const;
 
     uint8_t getPaletteColor(uint8_t palette, uint8_t id) const;
     void doLYCompare();

@@ -31,14 +31,14 @@ void Joypad::unpress(ButtonKind kind) {
 
 void Joypad::dPadKindImpl(DPadKind kind, bool on) {
     if (!getBit(joypadRegister, 4) && getBit(dPadState, static_cast<uint8_t>(kind)) && on) {
-        irqHandler.request(IRQHandler::KJoypad);
+        irqHandler.request(IRQHandler::kJoypad);
     }
     dPadState = setBit(dPadState, static_cast<uint8_t>(kind), !on);
 }
 
 void Joypad::buttonKindImpl(ButtonKind kind, bool on) {
     if (!getBit(joypadRegister, 5) && getBit(buttonsState, static_cast<uint8_t>(kind)) && on) {
-        irqHandler.request(IRQHandler::KJoypad);
+        irqHandler.request(IRQHandler::kJoypad);
     }
     buttonsState = setBit(buttonsState, static_cast<uint8_t>(kind), !on);
 }

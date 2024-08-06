@@ -12,7 +12,7 @@ public:
         kStat,
         kTimer,
         kSerial,
-        KJoypad
+        kJoypad
     };
     IRQHandler(CPU& cpu, AddressBus& addrBus);
     void handle();

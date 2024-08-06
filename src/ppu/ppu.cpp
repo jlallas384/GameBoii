@@ -112,14 +112,23 @@ void PPU::tick() {
                 if (getBit(stat, 5)) {
                     irqHandler.request(IRQHandler::kStat);
                 }
-                state.scanlineObjects = getObjectsToRender();
+                state.scanlineObjects.clear();
                 doLYCompare();
+            }
+            if (tickCount % 2 == 0 && state.scanlineObjects.size() < 10) {
+                auto object = createObject(tickCount / 2 - 1);
+                if (object.isAtScanline(ly)) {
+                    state.scanlineObjects.push_back(object);
+                }
             }
             if (tickCount == 80) {
                 nextMode = kDrawing;
             }
             break;
         case kDrawing:
+            if (tickCount == 1) {
+                std::stable_sort(state.scanlineObjects.begin(), state.scanlineObjects.end());
+            }
             if (state.x < LCD::width) {
                 doSingleDotDrawing();
             }
@@ -219,18 +228,6 @@ ObjectLayer PPU::createObject(uint8_t index) const {
         Tile t2 = getObjectTile(data.tileIndex | 0x1);
         return ObjectLayer(t1, t2, data);
     }
-}
-
-std::vector<ObjectLayer> PPU::getObjectsToRender() const {
-    std::vector<ObjectLayer> ret;
-    for (int i = 0; i < 40 && ret.size() < 10; i++) {
-        auto object = createObject(i);
-        if (object.isAtScanline(ly)) {
-            ret.push_back(object);
-        }
-    }
-    std::stable_sort(ret.begin(), ret.end());
-    return ret;
 }
 
 uint8_t PPU::getPaletteColor(uint8_t palette, uint8_t id) const {
