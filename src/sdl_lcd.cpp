@@ -9,14 +9,13 @@ SDLLCD::SDLLCD(SDL_Window* window) :
 }
 
 void SDLLCD::setPixel(uint8_t i, uint8_t j, uint8_t color) {
-    static Uint8 colors[4][3] = {
+    constexpr static Uint8 colors[4][3] = {
         {255, 255, 255},
         {211, 211, 211},
         {169, 169, 169},
         {0, 0, 0}
     };
     buffer[i][j] = (255 << 24) | (colors[color][0] << 16) | (colors[color][1] << 8) | colors[color][2];
-
 }
 
 void SDLLCD::refresh() {

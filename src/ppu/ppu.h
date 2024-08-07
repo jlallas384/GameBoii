@@ -28,6 +28,8 @@ private:
         int16_t dmaIndex = -8;
         bool dmaActive = false;
         uint8_t source;
+        bool wyCond = false, wxCond = false, wShown = false;
+        uint8_t wl = 0;
     };
     Tile getObjectTile(uint8_t index) const;
     Tile getNonObjectTile(uint8_t index) const;
@@ -36,7 +38,6 @@ private:
     Tile getWindowTileAt(uint8_t i, uint8_t j) const;
     Tile getBackgroundTileAt(uint8_t i, uint8_t j) const;
     uint8_t getBackgroundColorIdAt(uint8_t i, uint8_t j) const;
-    bool isIntersectAtWindow(uint8_t i, uint8_t j) const;
     uint8_t getWindowColorIdAt(uint8_t i, uint8_t j) const;
 
     ObjectLayer createObject(uint8_t index) const;

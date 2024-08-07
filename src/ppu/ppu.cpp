@@ -80,6 +80,8 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
 
 void PPU::reset() {
     state.x = 0;
+    state.wxCond = false;
+    state.wyCond = false;
     state.dmaActive = false;
     currentMode = kDisabled;
     nextMode = kDisabled;
@@ -88,6 +90,7 @@ void PPU::reset() {
     lcdc = 0;
 }
 
+// TODO clean this
 void PPU::tick() {
     if (state.dmaActive) {
         state.dmaIndex++;
@@ -114,6 +117,9 @@ void PPU::tick() {
                 }
                 state.scanlineObjects.clear();
                 doLYCompare();
+                state.wyCond |= wy == ly;
+                state.wxCond = false;
+                state.wShown = false;
             }
             if (tickCount % 2 == 0 && state.scanlineObjects.size() < 10) {
                 auto object = createObject(tickCount / 2 - 1);
@@ -130,6 +136,7 @@ void PPU::tick() {
                 std::stable_sort(state.scanlineObjects.begin(), state.scanlineObjects.end());
             }
             if (state.x < LCD::width) {
+                state.wxCond |= state.x + 7 == wx;
                 doSingleDotDrawing();
             }
             if (tickCount == 172) {
@@ -143,6 +150,9 @@ void PPU::tick() {
             if (tickCount == 204) {
                 ly++;
                 if (ly < LCD::height) {
+                    if (state.wShown) {
+                        state.wl++;
+                    }
                     nextMode = kOAMScan;
                 } else {
                     nextMode = kVBlank;
@@ -166,6 +176,8 @@ void PPU::tick() {
             }
             if (ly == 154) {
                 nextMode = kOAMScan;
+                state.wyCond = false;
+                state.wl = 0;
                 ly = 0;
             }
             break;
@@ -207,12 +219,7 @@ uint8_t PPU::getBackgroundColorIdAt(uint8_t i, uint8_t j) const {
     return t.at(i % 8, j % 8);
 }
 
-bool PPU::isIntersectAtWindow(uint8_t i, uint8_t j) const {
-    return wy <= i && wx - 7 <= j && j < wx - 7 + 256;
-}
-
 uint8_t PPU::getWindowColorIdAt(uint8_t i, uint8_t j) const {
-    i -= wy;
     j -= wx - 7;
     Tile t = getWindowTileAt(i / 8, j / 8);
     return t.at(i % 8, j % 8);
@@ -248,8 +255,9 @@ void PPU::doSingleDotDrawing() {
         uint8_t id = getBackgroundColorIdAt(ly, state.x);
         uint8_t color = getPaletteColor(bgp, id);
         bgId = id, bgColor = color;
-        if (getBit(lcdc, 5) && isIntersectAtWindow(ly, state.x)) {
-            uint8_t id = getWindowColorIdAt(ly, state.x);
+        if (getBit(lcdc, 5) && state.wxCond && state.wyCond) {
+            state.wShown = true;
+            uint8_t id = getWindowColorIdAt(state.wl, state.x);
             uint8_t color = getPaletteColor(bgp, id);
             bgId = id, bgColor = color;
         }
