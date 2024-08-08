@@ -15,7 +15,7 @@ class BackgroundTile : public Tile {
 public:
     BackgroundTile(std::span<const uint8_t> mem, uint8_t attribute);
     uint8_t at(uint8_t i, uint8_t j) const;
-    uint8_t getPalette();
+    uint8_t getPalette() const;
 private:
     bool priority, flipY, flipX;
     uint8_t palette;

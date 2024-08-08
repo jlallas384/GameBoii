@@ -34,10 +34,6 @@ uint8_t ObjectLayer::getDMGPalette() const {
     return dmgPalette;
 }
 
-uint8_t ObjectLayer::getBank() const {
-    return bank;
-}
-
 uint8_t ObjectLayer::getCGBPalette() const {
     return cgbPalette;
 }
@@ -57,6 +53,5 @@ void ObjectLayer::initAttributes(const ObjectData& data) {
     flipY = getBit(data.attributes, 6);
     flipX = getBit(data.attributes, 5);
     dmgPalette = getBit(data.attributes, 4);
-    bank = getBit(data.attributes, 3);
     cgbPalette = data.attributes & 0x7;
 }

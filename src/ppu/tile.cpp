@@ -27,6 +27,6 @@ uint8_t BackgroundTile::at(uint8_t i, uint8_t j) const {
     return Tile::at(i, j);
 }
 
-uint8_t BackgroundTile::getPalette() {
+uint8_t BackgroundTile::getPalette() const {
     return palette;
 }

@@ -123,6 +123,10 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
             std::cout << "tried writinging\n";
         });
     }
+
+    addrBus.setWriter(0xff4c, [&](uint8_t byte) {
+        isCGBMode = byte != 0x4;
+    });
 }
 
 void PPU::reset() {
@@ -245,12 +249,14 @@ BackgroundTile PPU::getNonObjectTile(uint8_t index, uint8_t attribute) const {
 
 BackgroundTile PPU::getTileAtTileMap1(uint8_t i, uint8_t j) const {
     auto index = 0x1800 + i * 32 + j;
-    return getNonObjectTile(vram[0][index], vram[1][index]);
+    uint8_t attribute = isCGBMode ? vram[1][index] : 0;
+    return getNonObjectTile(vram[0][index], attribute);
 }
 
 BackgroundTile PPU::getTileAtTileMap2(uint8_t i, uint8_t j) const {
     auto index = 0x1c00 + i * 32 + j;
-    return getNonObjectTile(vram[0][index], vram[1][index]);
+    uint8_t attribute = isCGBMode ? vram[1][index] : 0;
+    return getNonObjectTile(vram[0][index], attribute);
 }
 
 BackgroundTile PPU::getWindowTileAt(uint8_t i, uint8_t j) const {
@@ -265,14 +271,22 @@ std::pair<uint8_t, Color> PPU::getBackgroundColorAt(uint8_t i, uint8_t j) const 
     i = (i + scy) % 256, j = (j + scx) % 256;
     BackgroundTile t = getBackgroundTileAt(i / 8, j / 8);
     uint8_t id = t.at(i % 8, j % 8);
-    return { id, getBGColor(t.getPalette(), id)};
+    if (isCGBMode) {
+        return { id, getBGColor(t.getPalette(), id) };
+    } else {
+        return { id, getBGColor(0, getPaletteColor(bgp, id)) };
+    }
 }
 
 std::pair<uint8_t, Color> PPU::getWindowColorAt(uint8_t i, uint8_t j) const {
     j -= wx - 7;
     BackgroundTile t = getWindowTileAt(i / 8, j / 8);
     uint8_t id = t.at(i % 8, j % 8);
-    return { id, getBGColor(t.getPalette(), id)};
+    if (isCGBMode) {
+        return { id, getBGColor(t.getPalette(), id) };
+    } else {
+        return { id, getBGColor(0, getPaletteColor(bgp, id)) };
+    }
 }
 
 ObjectLayer PPU::createObject(uint8_t index) const {
@@ -317,7 +331,12 @@ void PPU::doSingleDotDrawing() {
                 uint8_t id = obj.getColorIdAt(ly, state.x);
                 if (id == 0) continue;
                 if (obj.isDrawn(bgId)) {
-                    lcd->setPixel(ly, state.x, getObjColor(obj.getCGBPalette(), id));
+                    if (isCGBMode) {
+                        lcd->setPixel(ly, state.x, getObjColor(obj.getCGBPalette(), id));
+                    } else {
+                        uint8_t palette = obj.getDMGPalette() ? obp1 : obp0;
+                        lcd->setPixel(ly, state.x, getObjColor(obj.getDMGPalette(), getPaletteColor(palette, id)));
+                    }
                 }
                 break;
             }
@@ -326,11 +345,11 @@ void PPU::doSingleDotDrawing() {
     state.x++;
 }
 
-uint16_t PPU::getBGColor(uint8_t index, uint8_t colorId) const {
+Color PPU::getBGColor(uint8_t index, uint8_t colorId) const {
     return bgPaletteRAM[index * 8 + colorId * 2] | (bgPaletteRAM[index * 8 + colorId * 2 + 1] << 8);
 }
 
-uint16_t PPU::getObjColor(uint8_t index, uint8_t colorId) const {
+Color PPU::getObjColor(uint8_t index, uint8_t colorId) const {
     return objPaletteRAM[index * 8 + colorId * 2] | (objPaletteRAM[index * 8 + colorId * 2 + 1] << 8);
 }
 

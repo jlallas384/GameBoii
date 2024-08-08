@@ -19,7 +19,6 @@ public:
     bool isIntersectAtPoint(uint8_t i, uint8_t j) const;
     uint8_t getColorIdAt(uint8_t i, uint8_t j) const;
     uint8_t getDMGPalette() const;
-    uint8_t getBank() const;
     uint8_t getCGBPalette() const;
     bool isDrawn(uint8_t bgId) const;
     bool operator<(const ObjectLayer& other) const;
@@ -28,5 +27,5 @@ private:
     Tile t1, t2;
     uint8_t height, y, x;
     bool priority, flipY, flipX;
-    uint8_t dmgPalette, bank, cgbPalette;
+    uint8_t dmgPalette, cgbPalette;
 };

@@ -49,8 +49,8 @@ private:
 
     // CGB
 
-    uint16_t getBGColor(uint8_t index, uint8_t colorId) const;
-    uint16_t getObjColor(uint8_t index, uint8_t colorId) const;
+    Color getBGColor(uint8_t index, uint8_t colorId) const;
+    Color getObjColor(uint8_t index, uint8_t colorId) const;
 
 
     AddressBus& addrBus;
@@ -73,4 +73,6 @@ private:
 
     std::array<uint8_t, 64> objPaletteRAM{};
     uint8_t objPaletteIndex = 0;
+
+    bool isCGBMode = true;
 };
