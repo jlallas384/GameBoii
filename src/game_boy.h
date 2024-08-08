@@ -26,5 +26,7 @@ private:
     Timers timers;
     std::unique_ptr<Cartridge> cartridge;
     std::array<uint8_t, 127> hram{};
-    std::array<uint8_t, 8192> wram{};
+    uint8_t wramBank = 1;
+    std::array<std::array<uint8_t, 4096>, 8> wram{};
+    std::array<uint8_t, 2304> bootROM;
 };

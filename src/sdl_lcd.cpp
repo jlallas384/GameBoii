@@ -4,23 +4,17 @@
 
 SDLLCD::SDLLCD(SDL_Window* window) : 
     renderer(SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED)), 
-    texture(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height)) {
+    texture(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_BGR555, SDL_TEXTUREACCESS_STREAMING, width, height)) {
     SDL_RenderSetLogicalSize(renderer, width, height);
 }
 
-void SDLLCD::setPixel(uint8_t i, uint8_t j, uint8_t color) {
-    constexpr static Uint8 colors[4][3] = {
-        {255, 255, 255},
-        {211, 211, 211},
-        {169, 169, 169},
-        {0, 0, 0}
-    };
-    buffer[i][j] = (255 << 24) | (colors[color][0] << 16) | (colors[color][1] << 8) | colors[color][2];
+void SDLLCD::setPixel(uint8_t i, uint8_t j, uint16_t color) {
+    buffer[i][j] = color;
 }
 
 void SDLLCD::refresh() {
     //static uint8_t x = 0;
-    SDL_UpdateTexture(texture, nullptr, buffer, width * sizeof(Uint32));
+    SDL_UpdateTexture(texture, nullptr, buffer, width * sizeof(uint16_t));
     SDL_RenderCopy(renderer, texture, nullptr, nullptr);
     SDL_RenderPresent(renderer);
     //x++;

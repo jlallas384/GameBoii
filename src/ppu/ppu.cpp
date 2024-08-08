@@ -10,11 +10,11 @@
 PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) : addrBus(addrBus), lcd(std::move(lcd)), irqHandler(irqHandler) {
     for (int i = 0; i < (1 << 13); i++) {
         addrBus.setReader(0x8000 + i, [&, i]() {
-            return currentMode != kDrawing ? vram[i] : 0xff;
+            return currentMode != kDrawing ? vram[vramBank][i] : 0xff;
         });
         addrBus.setWriter(0x8000 + i, [&, i](uint8_t byte) {
             if (currentMode != kDrawing) {
-                vram[i] = byte;
+                vram[vramBank][i] = byte;
             }
         });
     }
@@ -76,6 +76,53 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
     addrBus.setWriter(0xff48, obp0);
     addrBus.setReader(0xff49, obp1);
     addrBus.setWriter(0xff49, obp1);
+
+
+    // CGB
+    addrBus.setReader(0xff4f, vramBank);
+    addrBus.setWriter(0xff4f, [&](uint8_t byte) {
+        vramBank = byte & 0x1;
+    });
+
+    addrBus.setReader(0xff68, bgPaletteIndex);
+    addrBus.setWriter(0xff68, bgPaletteIndex);
+
+    addrBus.setReader(0xff69, [&]() {
+        return currentMode != kDrawing ? bgPaletteRAM[bgPaletteIndex & 63] : 0xff;
+    });
+    addrBus.setWriter(0xff69, [&](uint8_t byte) {
+        if (currentMode != kDrawing) {
+            bgPaletteRAM[bgPaletteIndex & 63] = byte;
+        }
+        if (getBit(bgPaletteIndex, 7)) {
+            bgPaletteIndex = (1 << 7) | (((bgPaletteIndex & 63) + 1) & 63);
+        }
+    });
+
+    addrBus.setReader(0xff6a, objPaletteIndex);
+    addrBus.setWriter(0xff6a, objPaletteIndex);
+
+    addrBus.setReader(0xff6b, [&]() {
+        return currentMode != kDrawing ? objPaletteRAM[objPaletteIndex & 63] : 0xff;
+    });
+    addrBus.setWriter(0xff6b, [&](uint8_t byte) {
+        if (currentMode != kDrawing) {
+            objPaletteRAM[objPaletteIndex & 63] = byte;
+        }
+        if (getBit(objPaletteIndex, 7)) {
+            objPaletteIndex = (1 << 7) | (((objPaletteIndex & 63) + 1) & 63);
+        }
+    });
+
+    for (int i = 0xff51; i <= 0xff55; i++) {
+        addrBus.setReader(i, [&]() {
+            std::cout << "tried reading\n";
+            return 0;
+        });
+        addrBus.setWriter(i, [&](uint8_t byte) {
+            std::cout << "tried writinging\n";
+        });
+    }
 }
 
 void PPU::reset() {
@@ -186,23 +233,23 @@ void PPU::tick() {
     }
 }
 
-Tile PPU::getObjectTile(uint8_t index) const {
-    return Tile(std::span(vram.begin() + index * 16, 16));
+Tile PPU::getObjectTile(uint8_t index, uint8_t bank) const {
+    return Tile(std::span(vram[bank].begin() + index * 16, 16));
 }
 
-Tile PPU::getNonObjectTile(uint8_t index) const {
-    return getBit(lcdc, 4) ? Tile(std::span(vram.begin() + index * 16, 16))
-        : Tile(std::span(vram.begin() + 0x1000 + static_cast<int8_t>(index) * 16, 16));
+Tile PPU::getNonObjectTile(uint8_t index, uint8_t bank) const {
+    return getBit(lcdc, 4) ? Tile(std::span(vram[bank].begin() + index * 16, 16))
+        : Tile(std::span(vram[bank].begin() + 0x1000 + static_cast<int8_t>(index) * 16, 16));
 }
 
 Tile PPU::getTileAtTileMap1(uint8_t i, uint8_t j) const {
     auto index = 0x1800 + i * 32 + j;
-    return getNonObjectTile(vram[index]);
+    return getNonObjectTile(vram[0][index], 0); // todo bank from attribute
 }
 
 Tile PPU::getTileAtTileMap2(uint8_t i, uint8_t j) const {
     auto index = 0x1c00 + i * 32 + j;
-    return getNonObjectTile(vram[index]);
+    return getNonObjectTile(vram[0][index], 0); // todo bank from attribute
 }
 
 Tile PPU::getWindowTileAt(uint8_t i, uint8_t j) const {
@@ -229,10 +276,10 @@ ObjectLayer PPU::createObject(uint8_t index) const {
     index *= 4;
     ObjectData data = { oam[index], oam[index + 1], oam[index + 2], oam[index + 3] };
     if (!getBit(lcdc, 2)) {
-        return ObjectLayer(getObjectTile(data.tileIndex), data);
+        return ObjectLayer(getObjectTile(data.tileIndex, 0), data);
     } else {
-        Tile t1 = getObjectTile(data.tileIndex & 0xfe);
-        Tile t2 = getObjectTile(data.tileIndex | 0x1);
+        Tile t1 = getObjectTile(data.tileIndex & 0xfe, 0);
+        Tile t2 = getObjectTile(data.tileIndex | 0x1, 0);
         return ObjectLayer(t1, t2, data);
     }
 }
@@ -262,21 +309,30 @@ void PPU::doSingleDotDrawing() {
             bgId = id, bgColor = color;
         }
     }
-    lcd->setPixel(ly, state.x, bgColor);
+    lcd->setPixel(ly, state.x, getBGColor(0, bgColor));
     if (getBit(lcdc, 1)) {
         for (const auto& obj : state.scanlineObjects) {
             if (obj.isIntersectAtPoint(ly, state.x)) {
                 uint8_t id = obj.getColorIdAt(ly, state.x);
                 if (id == 0) continue;
-                uint8_t palette = obj.getPalette(obp0, obp1);
+                bool paletteBool = obj.getDMGPalette();
+                uint8_t palette = paletteBool ? obp1 : obp0;
                 uint8_t color = getPaletteColor(palette, id);
                 if (obj.isDrawn(bgId)) {
-                    lcd->setPixel(ly, state.x, color);
+                    lcd->setPixel(ly, state.x, getObjColor(paletteBool, color));
                 }
                 break;
             }
         }
     }
     state.x++;
+}
+
+uint16_t PPU::getBGColor(uint8_t index, uint8_t colorId) {
+    return bgPaletteRAM[index * 8 + colorId * 2] | (bgPaletteRAM[index * 8 + colorId * 2 + 1] << 8);
+}
+
+uint16_t PPU::getObjColor(uint8_t index, uint8_t colorId) {
+    return objPaletteRAM[index * 8 + colorId * 2] | (objPaletteRAM[index * 8 + colorId * 2 + 1] << 8);
 }
 

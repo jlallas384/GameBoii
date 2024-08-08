@@ -30,8 +30,8 @@ uint8_t ObjectLayer::getColorIdAt(uint8_t i, uint8_t j) const {
     return i < 8 ? t1.at(i, j) : t2.at(i - 8, j);
 }
 
-uint8_t ObjectLayer::getPalette(uint8_t first, uint8_t second) const {
-    return palette ? second : first;
+bool ObjectLayer::getDMGPalette() const {
+    return palette;
 }
 
 bool ObjectLayer::isDrawn(uint8_t bgId) const {

@@ -31,8 +31,8 @@ private:
         bool wyCond = false, wxCond = false, wShown = false;
         uint8_t wl = 0;
     };
-    Tile getObjectTile(uint8_t index) const;
-    Tile getNonObjectTile(uint8_t index) const;
+    Tile getObjectTile(uint8_t index, uint8_t bank) const;
+    Tile getNonObjectTile(uint8_t index, uint8_t bank) const;
     Tile getTileAtTileMap1(uint8_t i, uint8_t j) const;
     Tile getTileAtTileMap2(uint8_t i, uint8_t j) const;
     Tile getWindowTileAt(uint8_t i, uint8_t j) const;
@@ -46,11 +46,17 @@ private:
     void doLYCompare();
     void doSingleDotDrawing();
 
+    // CGB
+
+    uint16_t getBGColor(uint8_t index, uint8_t colorId);
+    uint16_t getObjColor(uint8_t index, uint8_t colorId);
+
+
     AddressBus& addrBus;
     std::unique_ptr<LCD> lcd;
     IRQHandler& irqHandler;
 
-    std::array<uint8_t, 1 << 13> vram{};
+    std::array<std::array<uint8_t, 1 << 13>, 2> vram{};
     std::array<uint8_t, 160> oam{};
     uint16_t tickCount = 0;
     uint8_t lcdc = 0, ly = 0, lyc = 0, scy = 0, scx = 0, wy = 0, wx = 0;
@@ -58,4 +64,12 @@ private:
     uint8_t stat = 0;
     Mode currentMode = kDisabled, nextMode = kDisabled;
     State state;
+
+    // CGB
+    uint8_t vramBank = 0;
+    std::array<uint8_t, 64> bgPaletteRAM;
+    uint8_t bgPaletteIndex = 0;
+
+    std::array<uint8_t, 64> objPaletteRAM;
+    uint8_t objPaletteIndex = 0;
 };
