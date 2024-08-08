@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
+#include <utility>
 #include "lcd.h"
 #include "object_layer.h"
 
@@ -32,13 +33,13 @@ private:
         uint8_t wl = 0;
     };
     Tile getObjectTile(uint8_t index, uint8_t bank) const;
-    Tile getNonObjectTile(uint8_t index, uint8_t bank) const;
-    Tile getTileAtTileMap1(uint8_t i, uint8_t j) const;
-    Tile getTileAtTileMap2(uint8_t i, uint8_t j) const;
-    Tile getWindowTileAt(uint8_t i, uint8_t j) const;
-    Tile getBackgroundTileAt(uint8_t i, uint8_t j) const;
-    uint8_t getBackgroundColorIdAt(uint8_t i, uint8_t j) const;
-    uint8_t getWindowColorIdAt(uint8_t i, uint8_t j) const;
+    BackgroundTile getNonObjectTile(uint8_t index, uint8_t attribute) const;
+    BackgroundTile getTileAtTileMap1(uint8_t i, uint8_t j) const;
+    BackgroundTile getTileAtTileMap2(uint8_t i, uint8_t j) const;
+    BackgroundTile getWindowTileAt(uint8_t i, uint8_t j) const;
+    BackgroundTile getBackgroundTileAt(uint8_t i, uint8_t j) const;
+    std::pair<uint8_t, Color> getBackgroundColorAt(uint8_t i, uint8_t j) const;
+    std::pair<uint8_t, Color> getWindowColorAt(uint8_t i, uint8_t j) const;
 
     ObjectLayer createObject(uint8_t index) const;
 
@@ -48,8 +49,8 @@ private:
 
     // CGB
 
-    uint16_t getBGColor(uint8_t index, uint8_t colorId);
-    uint16_t getObjColor(uint8_t index, uint8_t colorId);
+    uint16_t getBGColor(uint8_t index, uint8_t colorId) const;
+    uint16_t getObjColor(uint8_t index, uint8_t colorId) const;
 
 
     AddressBus& addrBus;
@@ -67,9 +68,9 @@ private:
 
     // CGB
     uint8_t vramBank = 0;
-    std::array<uint8_t, 64> bgPaletteRAM;
+    std::array<uint8_t, 64> bgPaletteRAM{};
     uint8_t bgPaletteIndex = 0;
 
-    std::array<uint8_t, 64> objPaletteRAM;
+    std::array<uint8_t, 64> objPaletteRAM{};
     uint8_t objPaletteIndex = 0;
 };

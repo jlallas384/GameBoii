@@ -2,7 +2,7 @@
 
 #include "utils.h"
 
-ObjectLayer::ObjectLayer(const Tile& t1, const ObjectData& data) : t1(t1), height(8) {
+ObjectLayer::ObjectLayer(const Tile& t1, const ObjectData& data) : t1(t1), t2(t1), height(8) {
     initAttributes(data);
 }
 
@@ -30,8 +30,16 @@ uint8_t ObjectLayer::getColorIdAt(uint8_t i, uint8_t j) const {
     return i < 8 ? t1.at(i, j) : t2.at(i - 8, j);
 }
 
-bool ObjectLayer::getDMGPalette() const {
-    return palette;
+uint8_t ObjectLayer::getDMGPalette() const {
+    return dmgPalette;
+}
+
+uint8_t ObjectLayer::getBank() const {
+    return bank;
+}
+
+uint8_t ObjectLayer::getCGBPalette() const {
+    return cgbPalette;
 }
 
 bool ObjectLayer::isDrawn(uint8_t bgId) const {
@@ -48,5 +56,7 @@ void ObjectLayer::initAttributes(const ObjectData& data) {
     priority = getBit(data.attributes, 7);
     flipY = getBit(data.attributes, 6);
     flipX = getBit(data.attributes, 5);
-    palette = getBit(data.attributes, 4);
+    dmgPalette = getBit(data.attributes, 4);
+    bank = getBit(data.attributes, 3);
+    cgbPalette = data.attributes & 0x7;
 }

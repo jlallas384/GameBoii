@@ -237,49 +237,53 @@ Tile PPU::getObjectTile(uint8_t index, uint8_t bank) const {
     return Tile(std::span(vram[bank].begin() + index * 16, 16));
 }
 
-Tile PPU::getNonObjectTile(uint8_t index, uint8_t bank) const {
-    return getBit(lcdc, 4) ? Tile(std::span(vram[bank].begin() + index * 16, 16))
-        : Tile(std::span(vram[bank].begin() + 0x1000 + static_cast<int8_t>(index) * 16, 16));
+BackgroundTile PPU::getNonObjectTile(uint8_t index, uint8_t attribute) const {
+    uint8_t bank = getBit(attribute, 3);
+    return getBit(lcdc, 4) ? BackgroundTile(std::span(vram[bank].begin() + index * 16, 16), attribute)
+        : BackgroundTile(std::span(vram[bank].begin() + 0x1000 + static_cast<int8_t>(index) * 16, 16), attribute);
 }
 
-Tile PPU::getTileAtTileMap1(uint8_t i, uint8_t j) const {
+BackgroundTile PPU::getTileAtTileMap1(uint8_t i, uint8_t j) const {
     auto index = 0x1800 + i * 32 + j;
-    return getNonObjectTile(vram[0][index], 0); // todo bank from attribute
+    return getNonObjectTile(vram[0][index], vram[1][index]);
 }
 
-Tile PPU::getTileAtTileMap2(uint8_t i, uint8_t j) const {
+BackgroundTile PPU::getTileAtTileMap2(uint8_t i, uint8_t j) const {
     auto index = 0x1c00 + i * 32 + j;
-    return getNonObjectTile(vram[0][index], 0); // todo bank from attribute
+    return getNonObjectTile(vram[0][index], vram[1][index]);
 }
 
-Tile PPU::getWindowTileAt(uint8_t i, uint8_t j) const {
+BackgroundTile PPU::getWindowTileAt(uint8_t i, uint8_t j) const {
     return getBit(lcdc, 6) ? getTileAtTileMap2(i, j) : getTileAtTileMap1(i, j);
 }
 
-Tile PPU::getBackgroundTileAt(uint8_t i, uint8_t j) const {
+BackgroundTile PPU::getBackgroundTileAt(uint8_t i, uint8_t j) const {
     return getBit(lcdc, 3) ? getTileAtTileMap2(i, j) : getTileAtTileMap1(i, j);
 }
 
-uint8_t PPU::getBackgroundColorIdAt(uint8_t i, uint8_t j) const {
+std::pair<uint8_t, Color> PPU::getBackgroundColorAt(uint8_t i, uint8_t j) const {
     i = (i + scy) % 256, j = (j + scx) % 256;
-    Tile t = getBackgroundTileAt(i / 8, j / 8);
-    return t.at(i % 8, j % 8);
+    BackgroundTile t = getBackgroundTileAt(i / 8, j / 8);
+    uint8_t id = t.at(i % 8, j % 8);
+    return { id, getBGColor(t.getPalette(), id)};
 }
 
-uint8_t PPU::getWindowColorIdAt(uint8_t i, uint8_t j) const {
+std::pair<uint8_t, Color> PPU::getWindowColorAt(uint8_t i, uint8_t j) const {
     j -= wx - 7;
-    Tile t = getWindowTileAt(i / 8, j / 8);
-    return t.at(i % 8, j % 8);
+    BackgroundTile t = getWindowTileAt(i / 8, j / 8);
+    uint8_t id = t.at(i % 8, j % 8);
+    return { id, getBGColor(t.getPalette(), id)};
 }
 
 ObjectLayer PPU::createObject(uint8_t index) const {
     index *= 4;
     ObjectData data = { oam[index], oam[index + 1], oam[index + 2], oam[index + 3] };
+    uint8_t bank = getBit(data.attributes, 3);
     if (!getBit(lcdc, 2)) {
-        return ObjectLayer(getObjectTile(data.tileIndex, 0), data);
+        return ObjectLayer(getObjectTile(data.tileIndex, bank), data);
     } else {
-        Tile t1 = getObjectTile(data.tileIndex & 0xfe, 0);
-        Tile t2 = getObjectTile(data.tileIndex | 0x1, 0);
+        Tile t1 = getObjectTile(data.tileIndex & 0xfe, bank);
+        Tile t2 = getObjectTile(data.tileIndex | 0x1, bank);
         return ObjectLayer(t1, t2, data);
     }
 }
@@ -297,29 +301,23 @@ void PPU::doLYCompare() {
 }
 
 void PPU::doSingleDotDrawing() {
-    uint8_t bgId = 4, bgColor = LCD::white;
+    uint8_t bgId = 4;
+    Color bgColor = LCD::white;
     if (getBit(lcdc, 0)) {
-        uint8_t id = getBackgroundColorIdAt(ly, state.x);
-        uint8_t color = getPaletteColor(bgp, id);
-        bgId = id, bgColor = color;
+        std::tie(bgId, bgColor) = getBackgroundColorAt(ly, state.x);
         if (getBit(lcdc, 5) && state.wxCond && state.wyCond) {
             state.wShown = true;
-            uint8_t id = getWindowColorIdAt(state.wl, state.x);
-            uint8_t color = getPaletteColor(bgp, id);
-            bgId = id, bgColor = color;
+            std::tie(bgId, bgColor) = getWindowColorAt(state.wl, state.x);
         }
     }
-    lcd->setPixel(ly, state.x, getBGColor(0, bgColor));
+    lcd->setPixel(ly, state.x, bgColor);
     if (getBit(lcdc, 1)) {
         for (const auto& obj : state.scanlineObjects) {
             if (obj.isIntersectAtPoint(ly, state.x)) {
                 uint8_t id = obj.getColorIdAt(ly, state.x);
                 if (id == 0) continue;
-                bool paletteBool = obj.getDMGPalette();
-                uint8_t palette = paletteBool ? obp1 : obp0;
-                uint8_t color = getPaletteColor(palette, id);
                 if (obj.isDrawn(bgId)) {
-                    lcd->setPixel(ly, state.x, getObjColor(paletteBool, color));
+                    lcd->setPixel(ly, state.x, getObjColor(obj.getCGBPalette(), id));
                 }
                 break;
             }
@@ -328,11 +326,11 @@ void PPU::doSingleDotDrawing() {
     state.x++;
 }
 
-uint16_t PPU::getBGColor(uint8_t index, uint8_t colorId) {
+uint16_t PPU::getBGColor(uint8_t index, uint8_t colorId) const {
     return bgPaletteRAM[index * 8 + colorId * 2] | (bgPaletteRAM[index * 8 + colorId * 2 + 1] << 8);
 }
 
-uint16_t PPU::getObjColor(uint8_t index, uint8_t colorId) {
+uint16_t PPU::getObjColor(uint8_t index, uint8_t colorId) const {
     return objPaletteRAM[index * 8 + colorId * 2] | (objPaletteRAM[index * 8 + colorId * 2 + 1] << 8);
 }
 
