@@ -41,6 +41,8 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
         } else if (currentMode == kDisabled && enabled) {
             nextMode = kOAMScan;
             ly = 0;
+            state.wl = 0;
+            state.x = 0;
         }
         lcdc = byte;
     });
@@ -139,6 +141,11 @@ void PPU::reset() {
     stat = 0;
     tickCount = 0;
     lcdc = 0;
+    isCGBMode = true;
+    wy = 0;
+    wx = 0;
+    scx = 0;
+    scy = 0;
 }
 
 // TODO clean this
@@ -214,11 +221,11 @@ void PPU::tick() {
             if (tickCount == 1) {
                 doLYCompare();
                 if (ly == 144) {
+                    lcd->refresh();
                     if (getBit(stat, 4)) {
                         irqHandler.request(IRQHandler::kStat);
                     }
                     irqHandler.request(IRQHandler::kVBlank);
-                    lcd->refresh();
                 }
             }
             if (tickCount == 456) {

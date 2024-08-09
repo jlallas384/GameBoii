@@ -1,4 +1,5 @@
 #include "application.h"
+#include <chrono>
 #include <SDL2/SDL.h>
 #include "sdl_lcd.h"
 
@@ -14,9 +15,20 @@ Application::~Application() {
 }
 
 void Application::run() {
+    using namespace std::chrono_literals;
+    std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
     while (!quit) {
-        pollEvents();
-        gameBoy->run();
+        std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
+        if (now - last >= 16670us) {
+            for (int i = 0; i < 17556; i++) {
+                gameBoy->run();
+                if (i % 10 == 0) {
+                    pollEvents();
+                }
+            }
+            last = now;
+        }
+
     }
 }
 
