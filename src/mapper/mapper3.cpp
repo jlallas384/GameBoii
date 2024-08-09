@@ -21,14 +21,14 @@ void Mapper3::loadToAddrBus(AddressBus& addrBus) {
     for (int i = 0xa000; i < 0xc000; i++) {
         addrBus.setReader(i, [&, i]() {
             if (ramBank < 4) {
-                return readRAM(getRAMAddress(i));
+                return ramEnable ? readRAM(getRAMAddress(i)) : static_cast<uint8_t>(0xff);
             } else {
                 return rtc;
             }
         });
         addrBus.setWriter(i, [&, i](uint8_t byte) {
             if (ramBank < 4) {
-                writeRAM(getRAMAddress(i), byte);
+                if (ramEnable) writeRAM(getRAMAddress(i), byte);
             } else {
                 rtc = byte;
             }

@@ -6,6 +6,7 @@
 #include "mapper/mapper1.h"
 #include "mapper/mapper2.h"
 #include "mapper/mapper3.h"
+#include "mapper/mapper5.h"
 #include "address_bus.h"
 
 Cartridge::Cartridge(std::vector<uint8_t> &rom, uint32_t ramSize) : rom(std::move(rom)), ram(ramSize) {
@@ -37,6 +38,8 @@ std::unique_ptr<Cartridge> Cartridge::create(MapperKind kind, std::vector<uint8_
             return std::make_unique<Mapper2>(rom);
         case MapperKind::kMBC3:
             return std::make_unique<Mapper3>(rom, ramSize);
+        case MapperKind::kMBC5:
+            return std::make_unique<Mapper5>(rom, ramSize);
         default:
             return nullptr;
     }

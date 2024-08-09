@@ -20,16 +20,16 @@ void Mapper2::loadToAddrBus(AddressBus& addrBus) {
     }
     for (int i = 0; i < 0x8000; i++) {
         addrBus.setReader(i, [&, i]() {
-            return rom[getROMAddress(i)];
+            return readROM(getROMAddress(i));
         });
     }
     for (int i = 0xa000; i < 0xc000; i++) {
         addrBus.setReader(i, [&, i]() {
-            return ramEnable ? ram[getRAMAddress(i)] & 0xf : 0xff;
+            return ramEnable ? readRAM(getRAMAddress(i)) & 0xf : 0xff;
         });
         addrBus.setWriter(i, [&, i](uint8_t byte) {
             if (ramEnable) {
-                ram[getRAMAddress(i)] = byte & 0xf;
+                writeRAM(getRAMAddress(i), byte & 0xf);
             }
         });
     }

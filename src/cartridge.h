@@ -11,7 +11,8 @@ enum class MapperKind {
     kNone,
     kMBC1,
     kMBC2,
-    kMBC3
+    kMBC3,
+    kMBC5
 };
 
 class Cartridge {

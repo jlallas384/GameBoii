@@ -110,6 +110,11 @@ std::pair<std::unique_ptr<Cartridge>, bool> createCartidge(uint8_t value, std::v
             cartridge = Cartridge::create(MapperKind::kMBC3, rom, ramSize);
             hasBattery = value != 0x11 && value != 0x12;
             break;
+        case 0x1a:
+        case 0x1b:
+            cartridge = Cartridge::create(MapperKind::kMBC5, rom, ramSize);
+            hasBattery = value == 0x1b;
+            break;
         default:
             throw std::runtime_error("mapper is not supported");
     }
