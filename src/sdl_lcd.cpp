@@ -1,9 +1,11 @@
 #include "sdl_lcd.h"
-
-//extern std::chrono::steady_clock::time_point begin;
+//#include <iostream>
+//#include <chrono>
+////
+extern std::chrono::steady_clock::time_point begin;
 
 SDLLCD::SDLLCD(SDL_Window* window) : 
-    renderer(SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED)), 
+    renderer(SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)), 
     texture(SDL_CreateTexture(renderer, SDL_PIXELFORMAT_BGR555, SDL_TEXTUREACCESS_STREAMING, width, height)) {
     SDL_RenderSetLogicalSize(renderer, width, height);
 }
