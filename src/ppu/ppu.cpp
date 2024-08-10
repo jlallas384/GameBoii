@@ -150,14 +150,9 @@ void PPU::reset() {
 
 // TODO clean this
 void PPU::tick() {
-    if (state.dmaActive) {
-        state.dmaIndex++;
-        if (state.dmaIndex >= 0 && state.dmaIndex % 4 == 0) {
-            oam[state.dmaIndex / 4] = addrBus.read((state.source << 8) | (state.dmaIndex / 4));
-            if (state.dmaIndex / 4 == oam.size() - 1) {
-                state.dmaActive = false;
-            }
-        }
+    tickDMA();
+    if (getBit(addrBus.read(0xff4d), 7)) {
+        tickDMA();
     }
     if (currentMode != nextMode) {
         currentMode = nextMode;
@@ -241,6 +236,18 @@ void PPU::tick() {
             break;
         case kDisabled:
             break;
+    }
+}
+
+void PPU::tickDMA() {
+    if (state.dmaActive) {
+        state.dmaIndex++;
+        if (state.dmaIndex >= 0 && state.dmaIndex % 4 == 0) {
+            oam[state.dmaIndex / 4] = addrBus.read((state.source << 8) | (state.dmaIndex / 4));
+            if (state.dmaIndex / 4 == oam.size() - 1) {
+                state.dmaActive = false;
+            }
+        }
     }
 }
 

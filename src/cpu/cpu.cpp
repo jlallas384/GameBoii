@@ -7,6 +7,10 @@ CPU::CPU(AddressBus& addrBus) : addrBus(addrBus), flags(af.low), alu(flags) {
 
 }
 
+bool CPU::isDoubleSpeed() const {
+    return doubleSpeed;
+}
+
 void CPU::tick() {
     if (halted) return;
     if (!ticksLeft) {
@@ -20,6 +24,7 @@ void CPU::reset() {
     pc = 0;
     halted = false;
     ime = false;
+    doubleSpeed = false;
 }
 
 void CPU::execute() {
@@ -836,8 +841,12 @@ void CPU::execute() {
         case 0x10:
         {
             fetch8();
+            uint8_t key1 = addrBus.read(0xff4d);
+            if (key1 & 1) {
+                addrBus.write(0xff4d, key1 ^ 1);
+                doubleSpeed ^= true;
+            }
             ticksLeft = 1;
-            // TODO stop
             break;
         }
         case 0xcb:

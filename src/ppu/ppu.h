@@ -32,6 +32,7 @@ private:
         bool wyCond = false, wxCond = false, wShown = false;
         uint8_t wl = 0;
     };
+    void tickDMA();
     Tile getObjectTile(uint8_t index, uint8_t bank) const;
     BackgroundTile getNonObjectTile(uint8_t index, uint8_t attribute) const;
     BackgroundTile getTileAtTileMap1(uint8_t i, uint8_t j) const;
@@ -46,7 +47,6 @@ private:
     uint8_t getPaletteColor(uint8_t palette, uint8_t id) const;
     void doLYCompare();
     void doSingleDotDrawing();
-
     // CGB
 
     Color getBGColor(uint8_t index, uint8_t colorId) const;

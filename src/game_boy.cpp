@@ -59,6 +59,14 @@ GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrB
             wram[wramBank][i] = byte;
         });
     }
+    addrBus.setReader(0xff4d, [&]() {
+        return (cpu.isDoubleSpeed() << 7) | (key1 & 1);
+    });
+    addrBus.setWriter(0xff4d, [&](uint8_t byte) {
+        if ((key1 & 1) != (byte & 1)) {
+            key1 ^= 1;
+        }
+    });
 }
 
 Joypad& GameBoy::getJoypad() {
@@ -148,10 +156,14 @@ void GameBoy::loadCartridge(std::filesystem::path path) {
     }
     ppu.reset();
     cpu.reset();
+    key1 = 0;
 }
 
 void GameBoy::run() {
     cpu.tick();
+    if (cpu.isDoubleSpeed()) {
+        cpu.tick();
+    }
     ppu.tick();
     ppu.tick();
     ppu.tick();
@@ -160,5 +172,11 @@ void GameBoy::run() {
     timers.tick();
     timers.tick();
     timers.tick();
+    if (cpu.isDoubleSpeed()) {
+        timers.tick();
+        timers.tick();
+        timers.tick();
+        timers.tick();
+    }
     irqHandler.handle();
 }
