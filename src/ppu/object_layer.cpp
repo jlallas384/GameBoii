@@ -38,8 +38,8 @@ uint8_t ObjectLayer::getCGBPalette() const {
     return cgbPalette;
 }
 
-bool ObjectLayer::isDrawn(uint8_t bgId) const {
-    return !priority || !(1 <= bgId && bgId <= 3);
+bool ObjectLayer::getPriority() const {
+    return priority;
 }
 
 bool ObjectLayer::operator<(const ObjectLayer& other) const {

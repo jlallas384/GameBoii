@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
-#include <utility>
+#include <tuple>
 #include "lcd.h"
 #include "object_layer.h"
 
@@ -38,8 +38,8 @@ private:
     BackgroundTile getTileAtTileMap2(uint8_t i, uint8_t j) const;
     BackgroundTile getWindowTileAt(uint8_t i, uint8_t j) const;
     BackgroundTile getBackgroundTileAt(uint8_t i, uint8_t j) const;
-    std::pair<uint8_t, Color> getBackgroundColorAt(uint8_t i, uint8_t j) const;
-    std::pair<uint8_t, Color> getWindowColorAt(uint8_t i, uint8_t j) const;
+    std::tuple<uint8_t, Color, bool> getBackgroundColorAt(uint8_t i, uint8_t j) const;
+    std::tuple<uint8_t, Color, bool> getWindowColorAt(uint8_t i, uint8_t j) const;
 
     ObjectLayer createObject(uint8_t index) const;
 

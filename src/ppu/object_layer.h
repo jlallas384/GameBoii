@@ -20,7 +20,7 @@ public:
     uint8_t getColorIdAt(uint8_t i, uint8_t j) const;
     uint8_t getDMGPalette() const;
     uint8_t getCGBPalette() const;
-    bool isDrawn(uint8_t bgId) const;
+    bool getPriority() const;
     bool operator<(const ObjectLayer& other) const;
 private:
     void initAttributes(const ObjectData& data);

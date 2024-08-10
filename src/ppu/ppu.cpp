@@ -190,7 +190,7 @@ void PPU::tick() {
             }
             break;
         case kDrawing:
-            if (tickCount == 1) {
+            if (tickCount == 1 && !isCGBMode) {
                 std::stable_sort(state.scanlineObjects.begin(), state.scanlineObjects.end());
             }
             if (state.x < LCD::width) {
@@ -274,25 +274,25 @@ BackgroundTile PPU::getBackgroundTileAt(uint8_t i, uint8_t j) const {
     return getBit(lcdc, 3) ? getTileAtTileMap2(i, j) : getTileAtTileMap1(i, j);
 }
 
-std::pair<uint8_t, Color> PPU::getBackgroundColorAt(uint8_t i, uint8_t j) const {
+std::tuple<uint8_t, Color, bool> PPU::getBackgroundColorAt(uint8_t i, uint8_t j) const {
     i = (i + scy) % 256, j = (j + scx) % 256;
     BackgroundTile t = getBackgroundTileAt(i / 8, j / 8);
     uint8_t id = t.at(i % 8, j % 8);
     if (isCGBMode) {
-        return { id, getBGColor(t.getPalette(), id) };
+        return { id, getBGColor(t.getPalette(), id), t.getPriority() };
     } else {
-        return { id, getBGColor(0, getPaletteColor(bgp, id)) };
+        return { id, getBGColor(0, getPaletteColor(bgp, id)), t.getPriority() };
     }
 }
 
-std::pair<uint8_t, Color> PPU::getWindowColorAt(uint8_t i, uint8_t j) const {
+std::tuple<uint8_t, Color, bool> PPU::getWindowColorAt(uint8_t i, uint8_t j) const {
     j -= wx - 7;
     BackgroundTile t = getWindowTileAt(i / 8, j / 8);
     uint8_t id = t.at(i % 8, j % 8);
     if (isCGBMode) {
-        return { id, getBGColor(t.getPalette(), id) };
+        return { id, getBGColor(t.getPalette(), id), t.getPriority() };
     } else {
-        return { id, getBGColor(0, getPaletteColor(bgp, id)) };
+        return { id, getBGColor(0, getPaletteColor(bgp, id)), t.getPriority() };
     }
 }
 
@@ -322,13 +322,14 @@ void PPU::doLYCompare() {
 }
 
 void PPU::doSingleDotDrawing() {
-    uint8_t bgId = 4;
+    uint8_t bgId = 0;
     Color bgColor = LCD::white;
-    if (getBit(lcdc, 0)) {
-        std::tie(bgId, bgColor) = getBackgroundColorAt(ly, state.x);
+    bool bgPriority = false;
+    if (getBit(lcdc, 0) || isCGBMode) {
+        std::tie(bgId, bgColor, bgPriority) = getBackgroundColorAt(ly, state.x);
         if (getBit(lcdc, 5) && state.wxCond && state.wyCond) {
             state.wShown = true;
-            std::tie(bgId, bgColor) = getWindowColorAt(state.wl, state.x);
+            std::tie(bgId, bgColor, bgPriority) = getWindowColorAt(state.wl, state.x);
         }
     }
     lcd->setPixel(ly, state.x, bgColor);
@@ -337,10 +338,12 @@ void PPU::doSingleDotDrawing() {
             if (obj.isIntersectAtPoint(ly, state.x)) {
                 uint8_t id = obj.getColorIdAt(ly, state.x);
                 if (id == 0) continue;
-                if (obj.isDrawn(bgId)) {
-                    if (isCGBMode) {
+                if (isCGBMode) {
+                    if (bgId == 0 || !getBit(lcdc, 0) || (!bgPriority && !obj.getPriority())) {
                         lcd->setPixel(ly, state.x, getObjColor(obj.getCGBPalette(), id));
-                    } else {
+                    }
+                } else {
+                    if (!obj.getPriority() || bgId == 0) {
                         uint8_t palette = obj.getDMGPalette() ? obp1 : obp0;
                         lcd->setPixel(ly, state.x, getObjColor(obj.getDMGPalette(), getPaletteColor(palette, id)));
                     }

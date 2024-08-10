@@ -30,3 +30,7 @@ uint8_t BackgroundTile::at(uint8_t i, uint8_t j) const {
 uint8_t BackgroundTile::getPalette() const {
     return palette;
 }
+
+bool BackgroundTile::getPriority() const {
+    return priority;
+}
