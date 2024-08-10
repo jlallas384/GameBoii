@@ -5,7 +5,6 @@
 #include <utility>
 #include <exception>
 #include "cartridge.h"
-#include <iostream>
 
 GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrBus), joypad(addrBus, irqHandler), ppu(addrBus, std::move(lcd), irqHandler), timers(addrBus, irqHandler) {
     std::ifstream file("cgb_boot.bin", std::ios::binary);

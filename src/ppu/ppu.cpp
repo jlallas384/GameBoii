@@ -5,7 +5,6 @@
 #include "address_bus.h"
 #include "utils.h"
 #include "object_layer.h"
-#include <iostream>
 
 PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) : addrBus(addrBus), lcd(std::move(lcd)), irqHandler(irqHandler) {
     for (int i = 0; i < (1 << 13); i++) {

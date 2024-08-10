@@ -32,6 +32,7 @@
     <ClCompile Include="src\mapper\mapper1.cpp" />
     <ClCompile Include="src\mapper\mapper2.cpp" />
     <ClCompile Include="src\mapper\mapper3.cpp" />
+    <ClCompile Include="src\mapper\mapper5.cpp" />
     <ClCompile Include="src\ppu\object_layer.cpp" />
     <ClCompile Include="src\ppu\ppu.cpp" />
     <ClCompile Include="src\ppu\tile.cpp" />
@@ -52,6 +53,7 @@
     <ClInclude Include="src\mapper\mapper1.h" />
     <ClInclude Include="src\mapper\mapper2.h" />
     <ClInclude Include="src\mapper\mapper3.h" />
+    <ClInclude Include="src\mapper\mapper5.h" />
     <ClInclude Include="src\ppu\lcd.h" />
     <ClInclude Include="src\ppu\object_layer.h" />
     <ClInclude Include="src\ppu\ppu.h" />
