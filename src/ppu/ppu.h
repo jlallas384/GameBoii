@@ -31,8 +31,10 @@ private:
         uint8_t source;
         bool wyCond = false, wxCond = false, wShown = false;
         uint8_t wl = 0;
+        uint16_t hdmaLength = 0;
     };
     void tickDMA();
+    void tickHDMA();
     Tile getObjectTile(uint8_t index, uint8_t bank) const;
     BackgroundTile getNonObjectTile(uint8_t index, uint8_t attribute) const;
     BackgroundTile getTileAtTileMap1(uint8_t i, uint8_t j) const;
@@ -73,6 +75,6 @@ private:
 
     std::array<uint8_t, 64> objPaletteRAM{};
     uint8_t objPaletteIndex = 0;
-
+    uint16_t hdmaSource = 0, hdmaDest = 0;
     bool isCGBMode = true;
 };

@@ -116,15 +116,30 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
         }
     });
 
-    for (int i = 0xff51; i <= 0xff55; i++) {
-        addrBus.setReader(i, [&]() {
-            std::cout << "tried reading\n";
-            return 0;
-        });
-        addrBus.setWriter(i, [&](uint8_t byte) {
-            std::cout << "tried writinging\n";
-        });
-    }
+    addrBus.setWriter(0xff51, [&](uint8_t byte) {
+        hdmaSource = (hdmaSource & 0xff) | (byte << 8);
+    });
+    addrBus.setWriter(0xff52, [&](uint8_t byte) {
+        hdmaSource = (hdmaSource & 0xff00) | (byte & 0xf0);
+    });
+    addrBus.setWriter(0xff53, [&](uint8_t byte) {
+        hdmaDest = (hdmaDest & 0xff) | ((byte & 0x1f) << 8);
+    });
+    addrBus.setWriter(0xff54, [&](uint8_t byte) {
+        hdmaDest = (hdmaDest & 0xff00) | (byte & 0xf0);
+    });
+
+    addrBus.setReader(0xff55, [&]() {
+        return !state.hdmaLength ? 0xff : state.hdmaLength / 0x10 - 1;
+    });
+    addrBus.setWriter(0xff55, [&](uint8_t byte) {
+        state.hdmaLength = ((byte & 0x7f) + 1) * 0x10; //TODO disabling
+        if (!getBit(byte, 7)) {
+            while (state.hdmaLength) {
+                tickHDMA();
+            }
+        }
+    });
 
     addrBus.setWriter(0xff4c, [&](uint8_t byte) {
         isCGBMode = byte != 0x4;
@@ -136,6 +151,7 @@ void PPU::reset() {
     state.wxCond = false;
     state.wyCond = false;
     state.dmaActive = false;
+    state.hdmaLength = 0;
     currentMode = kDisabled;
     nextMode = kDisabled;
     stat = 0;
@@ -197,8 +213,11 @@ void PPU::tick() {
             }
             break;
         case kHBlank:
-            if (tickCount == 1 && getBit(stat, 3)) {
-                irqHandler.request(IRQHandler::kStat);
+            if (tickCount == 1) {
+                if (getBit(stat, 3)) {
+                    irqHandler.request(IRQHandler::kStat);
+                }
+                tickHDMA();
             }
             if (tickCount == 204) {
                 ly++;
@@ -248,6 +267,14 @@ void PPU::tickDMA() {
                 state.dmaActive = false;
             }
         }
+    }
+}
+
+void PPU::tickHDMA() {
+    if (!state.hdmaLength) return;
+    for (int i = 0; i < 16; i++) {
+        vram[vramBank][hdmaDest++] = addrBus.read(hdmaSource++);
+        state.hdmaLength--;
     }
 }
 
