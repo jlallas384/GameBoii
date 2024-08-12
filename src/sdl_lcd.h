@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ppu/lcd.h"
-#include "SDL2/SDL.h"
+#include <SDL2/SDL.h>
 
 class SDLLCD : public LCD {
 public:

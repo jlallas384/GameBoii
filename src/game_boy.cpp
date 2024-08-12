@@ -21,6 +21,7 @@ GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrB
 
         });
     }
+
     for (int i = 0xff30; i <= 0xff3f; i++) {
         addrBus.setReader(i, [&]() {
             return 0;
@@ -58,6 +59,7 @@ GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrB
             wram[wramBank][i] = byte;
         });
     }
+
     addrBus.setReader(0xff4d, [&]() {
         return (cpu.isDoubleSpeed() << 7) | (key1 & 1);
     });

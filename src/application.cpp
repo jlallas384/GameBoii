@@ -5,7 +5,7 @@
 
 Application::Application() {
     SDL_Init(SDL_INIT_VIDEO);
-    window = SDL_CreateWindow("gbmu", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 160 * 2, 144 * 2, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow("GameBoii", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 160 * 2, 144 * 2, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     auto lcd = std::make_unique<SDLLCD>(window);
     gameBoy = std::make_unique<GameBoy>(std::move(lcd));
 }
@@ -18,7 +18,6 @@ void Application::run() {
     using namespace std::chrono_literals;
     std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
     while (!quit) {
-        gameBoy->run();
         std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
         if (now - last >= 16670us) {
             for (int i = 0; i < 17556; i++) {
