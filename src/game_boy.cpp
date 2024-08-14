@@ -93,22 +93,22 @@ uint32_t getRAMSize(uint8_t value) {
     }
 }
 
-std::pair<std::unique_ptr<Cartridge>, bool> createCartidge(uint8_t value, std::vector<uint8_t>& rom, uint32_t ramSize) {
-    std::unique_ptr<Cartridge> cartridge;
+std::unique_ptr<Cartridge> createCartidge(uint8_t value, std::vector<uint8_t>& rom, uint32_t ramSize, std::filesystem::path path) {
+    MapperKind kind = MapperKind::kNone;
     bool hasBattery = false;
     switch (value) {
         case 0x0:
-            cartridge = Cartridge::create(MapperKind::kNone, rom, ramSize);
+            kind = MapperKind::kNone;
             break;
         case 0x1:
         case 0x2:
         case 0x3:
-            cartridge = Cartridge::create(MapperKind::kMBC1, rom, ramSize);
+            kind = MapperKind::kMBC1;
             hasBattery = value == 0x3;
             break;
         case 0x5:
         case 0x6:
-            cartridge = Cartridge::create(MapperKind::kMBC2, rom, ramSize);
+            kind = MapperKind::kMBC2;
             hasBattery = value == 0x6;
             break;
         case 0xf:
@@ -116,18 +116,18 @@ std::pair<std::unique_ptr<Cartridge>, bool> createCartidge(uint8_t value, std::v
         case 0x11:
         case 0x12:
         case 0x13:
-            cartridge = Cartridge::create(MapperKind::kMBC3, rom, ramSize);
+            kind = MapperKind::kMBC3;
             hasBattery = value != 0x11 && value != 0x12;
             break;
         case 0x1a:
         case 0x1b:
-            cartridge = Cartridge::create(MapperKind::kMBC5, rom, ramSize);
+            kind = MapperKind::kMBC5;
             hasBattery = value == 0x1b;
             break;
         default:
             throw std::runtime_error("mapper is not supported");
     }
-    return std::make_pair(std::move(cartridge), hasBattery);
+    return Cartridge::create(kind, rom, ramSize, path, hasBattery);
 }
 
 void GameBoy::loadCartridge(std::filesystem::path path) {
@@ -140,12 +140,7 @@ void GameBoy::loadCartridge(std::filesystem::path path) {
     file.read(reinterpret_cast<char*>(rom.data()), romSize);
     uint32_t ramSize = getRAMSize(rom[0x149]);
 
-    bool hasBattery;
-    std::tie(cartridge, hasBattery) = createCartidge(rom[0x147], rom, ramSize);
-
-    if (hasBattery) {
-        cartridge->loadRAM(path.replace_extension("sav"));
-    }
+    cartridge = createCartidge(rom[0x147], rom, ramSize, path);
 
     cartridge->loadToAddrBus(addrBus);
 
@@ -180,4 +175,18 @@ void GameBoy::run() {
         timers.tick();
     }
     irqHandler.handle();
+}
+
+void GameBoy::serialize(std::ofstream& of) const {
+    using ::serialize;
+    cpu.serialize(of);
+    irqHandler.serialize(of);
+    joypad.serialize(of);
+    ppu.serialize(of);
+    timers.serialize(of);
+    cartridge->serialize(of);
+    serialize(of, hram);
+    serialize(of, wramBank);
+    serialize(of, key1);
+    serialize(of, wram);
 }

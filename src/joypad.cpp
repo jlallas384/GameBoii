@@ -29,6 +29,11 @@ void Joypad::unpress(ButtonKind kind) {
     buttonKindImpl(kind, false);
 }
 
+void Joypad::serialize(std::ofstream& of) const {
+    using ::serialize;
+    serialize(of, joypadRegister);
+}
+
 void Joypad::dPadKindImpl(DPadKind kind, bool on) {
     if (!getBit(joypadRegister, 4) && getBit(dPadState, static_cast<uint8_t>(kind)) && on) {
         irqHandler.request(IRQHandler::kJoypad);

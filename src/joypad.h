@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <fstream>
 
 enum class DPadKind {
     kRight,
@@ -25,6 +26,7 @@ public:
     void unpress(DPadKind kind);
     void press(ButtonKind kind);
     void unpress(ButtonKind kind);
+    void serialize(std::ofstream& of) const;
 private:
     void dPadKindImpl(DPadKind kind, bool on);
     void buttonKindImpl(ButtonKind kind, bool on);

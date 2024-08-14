@@ -33,3 +33,13 @@ void Timers::tick() {
     }
     previousAND = currentAND;
 }
+
+void Timers::serialize(std::ofstream& of) const {
+    using ::serialize;
+    serialize(of, previousAND);
+    serialize(of, div);
+    serialize(of, tac);
+    serialize(of, tac);
+    serialize(of, tima);
+    serialize(of, tma);
+}

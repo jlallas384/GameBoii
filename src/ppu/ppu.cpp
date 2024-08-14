@@ -257,6 +257,31 @@ void PPU::tick() {
     }
 }
 
+void PPU::serialize(std::ofstream& of) const {
+    using ::serialize;
+    serialize(of, vram);
+    serialize(of, oam);
+    serialize(of, tickCount);
+    serialize(of, lcdc);
+    serialize(of, ly);
+    serialize(of, lyc);
+    serialize(of, scy);
+    serialize(of, scx);
+    serialize(of, wy);
+    serialize(of, wx);
+    serialize(of, bgp);
+    serialize(of, obp0);
+    serialize(of, obp1);
+    serialize(of, stat);
+    serialize(of, vramBank);
+    serialize(of, bgPaletteRAM);
+    serialize(of, bgPaletteIndex);
+    serialize(of, objPaletteRAM);
+    serialize(of, objPaletteIndex);
+    serialize(of, hdmaSource);
+    serialize(of, hdmaDest);
+}
+
 void PPU::tickDMA() {
     if (state.dmaActive) {
         state.dmaIndex++;
@@ -396,3 +421,10 @@ Color PPU::getObjColor(uint8_t index, uint8_t colorId) const {
     return objPaletteRAM[index * 8 + colorId * 2] | (objPaletteRAM[index * 8 + colorId * 2 + 1] << 8);
 }
 
+void PPU::State::serialize(std::ofstream of) const {
+    using ::serialize;
+    serialize(of, dmaIndex);
+    serialize(of, dmaActive);
+    serialize(of, source);
+    serialize(of, hdmaLength);
+}

@@ -35,6 +35,12 @@ void Mapper2::loadToAddrBus(AddressBus& addrBus) {
     }
 }
 
+void Mapper2::serializeImpl(std::ofstream& of) const {
+    using ::serialize;
+    serialize(of, ramEnable);
+    serialize(of, bank);
+}
+
 uint32_t Mapper2::getROMAddress(uint16_t addr) const {
     uint8_t bankNumber = addr < 0x4000 ? 0 : bank;
     addr &= (1 << 14) - 1;

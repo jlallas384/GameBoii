@@ -21,6 +21,8 @@ public:
     bool isDoubleSpeed() const;
     void tick();
     void reset();
+    void serialize(std::ofstream& of) const;
+    void deserialize(std::ifstream& is);
 private:
     void execute();
     void executeCB();

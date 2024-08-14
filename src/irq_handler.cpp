@@ -29,3 +29,9 @@ void IRQHandler::handle() {
 void IRQHandler::request(RequestKind rk) {
     intFlag = setBit(intFlag, rk, true);
 }
+
+void IRQHandler::serialize(std::ofstream& of) const {
+    using ::serialize;
+    serialize(of, intEnable);
+    serialize(of, intFlag);
+}

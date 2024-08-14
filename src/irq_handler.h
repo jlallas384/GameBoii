@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <iostream>
 
 class CPU;
 class AddressBus;
@@ -17,6 +18,7 @@ public:
     IRQHandler(CPU& cpu, AddressBus& addrBus);
     void handle();
     void request(RequestKind rk);
+    void serialize(std::ofstream& os) const;
 private:
     CPU& cpu;
     uint8_t intEnable = 0, intFlag = 0;

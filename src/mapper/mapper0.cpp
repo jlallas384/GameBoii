@@ -1,5 +1,6 @@
 #include "mapper0.h"
 #include "address_bus.h"
+#include "utils.h"
 
 void Mapper0::loadToAddrBus(AddressBus& addrBus) {
     for (int i = 0; i < 0x8000; i++) {

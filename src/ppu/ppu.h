@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <tuple>
+#include <fstream>
 #include "lcd.h"
 #include "object_layer.h"
 
@@ -15,8 +16,9 @@ public:
     PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler);
     void reset();
     void tick();
+    void serialize(std::ofstream& of) const;
 private:
-    enum Mode {
+    enum Mode : uint8_t {
         kHBlank,
         kVBlank,
         kOAMScan,
@@ -24,6 +26,7 @@ private:
         kDisabled = 0x4
     };
     struct State {
+        void serialize(std::ofstream of) const;
         std::vector<ObjectLayer> scanlineObjects;
         uint8_t x = 0;
         int16_t dmaIndex = -8;

@@ -1,6 +1,7 @@
 #include "mapper3.h"
 
 #include "address_bus.h"
+#include "utils.h"
 
 void Mapper3::loadToAddrBus(AddressBus& addrBus) {
     for (int i = 0; i < 0x2000; i++) {
@@ -47,6 +48,14 @@ void Mapper3::loadToAddrBus(AddressBus& addrBus) {
     }
 }
 
+void Mapper3::serializeImpl(std::ofstream& of) const {
+    using ::serialize;
+    serialize(of, ramEnable);
+    serialize(of, romBank);
+    serialize(of, ramBank);
+    serialize(of, rtc);
+}
+
 uint32_t Mapper3::getROMAddress(uint16_t addr) const {
     uint8_t mask = (rom.size() >> 14) - 1;
     uint8_t bankNumber = romBank & mask;
@@ -58,3 +67,4 @@ uint16_t Mapper3::getRAMAddress(uint16_t addr) const {
     addr &= (1 << 13) - 1;
     return (ramBank << 13) | addr;
 }
+

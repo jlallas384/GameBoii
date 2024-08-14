@@ -1,6 +1,7 @@
 #include "mapper1.h"
 
 #include "address_bus.h"
+#include "utils.h"
 
 void Mapper1::loadToAddrBus(AddressBus& addrBus) {
     for (int i = 0; i < 0x2000; i++) {
@@ -39,6 +40,14 @@ void Mapper1::loadToAddrBus(AddressBus& addrBus) {
             }
         });
     }
+}
+
+void Mapper1::serializeImpl(std::ofstream& of) const {
+    using ::serialize;
+    serialize(of, ramEnable);
+    serialize(of, bank1);
+    serialize(of, bank2);
+    serialize(of, mode);
 }
 
 uint32_t Mapper1::getROMAddress(uint16_t addr) const {

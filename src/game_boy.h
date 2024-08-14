@@ -2,6 +2,7 @@
 #include <memory>
 #include <filesystem>
 #include <array>
+#include <fstream>
 #include "cartridge.h"
 #include "cpu/cpu.h"
 #include "ppu/ppu.h"
@@ -18,6 +19,7 @@ public:
     void loadCartridge(std::filesystem::path path);
     void run();
 private:
+    void serialize(std::ofstream& of) const;
     AddressBus addrBus;
     CPU cpu;
     IRQHandler irqHandler;

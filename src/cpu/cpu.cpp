@@ -27,6 +27,20 @@ void CPU::reset() {
     doubleSpeed = false;
 }
 
+void CPU::serialize(std::ofstream& of) const {
+    using ::serialize;
+    serialize(of, af);
+    serialize(of, bc);
+    serialize(of, de);
+    serialize(of, hl);
+    serialize(of, pc);
+    serialize(of, sp);
+    serialize(of, ime);
+    serialize(of, halted);
+    serialize(of, doubleSpeed);
+    serialize(of, ticksLeft);
+}
+
 void CPU::execute() {
     uint8_t op = fetch8();
     switch (op) {
