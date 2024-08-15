@@ -17,6 +17,7 @@ public:
     void reset();
     void tick();
     void serialize(std::ofstream& of) const;
+    void deserialize(std::ifstream& is);
 private:
     enum Mode : uint8_t {
         kHBlank,
@@ -26,7 +27,8 @@ private:
         kDisabled = 0x4
     };
     struct State {
-        void serialize(std::ofstream of) const;
+        void serialize(std::ofstream& of) const;
+        void deserialize(std::ifstream& is);
         std::vector<ObjectLayer> scanlineObjects;
         uint8_t x = 0;
         int16_t dmaIndex = -8;

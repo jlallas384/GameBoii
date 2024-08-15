@@ -11,6 +11,7 @@ public:
     Timers(AddressBus& addrBus, IRQHandler& IRQHandler);
     void tick();
     void serialize(std::ofstream& of) const;
+    void deserialize(std::ifstream& is);
 private:
     IRQHandler& irqHandler;
     bool previousAND = false;

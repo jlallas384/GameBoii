@@ -43,3 +43,13 @@ void Timers::serialize(std::ofstream& of) const {
     serialize(of, tima);
     serialize(of, tma);
 }
+
+void Timers::deserialize(std::ifstream& is) {
+    using ::deserialize;
+    deserialize(is, previousAND);
+    deserialize(is, div);
+    deserialize(is, tac);
+    deserialize(is, tac);
+    deserialize(is, tima);
+    deserialize(is, tma);
+}

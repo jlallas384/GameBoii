@@ -35,3 +35,9 @@ void IRQHandler::serialize(std::ofstream& of) const {
     serialize(of, intEnable);
     serialize(of, intFlag);
 }
+
+void IRQHandler::deserialize(std::ifstream& is) {
+    using ::deserialize;
+    deserialize(is, intEnable);
+    deserialize(is, intFlag);
+}

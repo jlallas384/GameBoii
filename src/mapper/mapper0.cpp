@@ -2,6 +2,10 @@
 #include "address_bus.h"
 #include "utils.h"
 
+Mapper0::~Mapper0() {
+    saveRAM();
+}
+
 void Mapper0::loadToAddrBus(AddressBus& addrBus) {
     for (int i = 0; i < 0x8000; i++) {
         addrBus.setReader(i, [&, i]() {
@@ -16,4 +20,14 @@ void Mapper0::loadToAddrBus(AddressBus& addrBus) {
             writeRAM(i, byte);
         });
     }
+}
+
+void Mapper0::serialize(std::ofstream& of) const {
+    using ::serialize;
+    serialize(of, ram);
+}
+
+void Mapper0::deserialize(std::ifstream& is) {
+    using ::deserialize;
+    deserialize(is, ram);
 }

@@ -40,14 +40,14 @@ void deserialize(std::ifstream& is, T& value) {
 
 template <typename T>
 void deserialize(std::ifstream& is, std::vector<T>& vec) {
-    for (const auto& value : vec) {
+    for (auto& value : vec) {
         deserialize(is, value);
     }
 }
 
 template <typename T, size_t N>
 void deserialize(std::ifstream& is, std::array<T, N>& arr) {
-    for (const auto& value : arr) {
+    for (auto& value : arr) {
         deserialize(is, value);
     }
 }

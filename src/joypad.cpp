@@ -34,6 +34,11 @@ void Joypad::serialize(std::ofstream& of) const {
     serialize(of, joypadRegister);
 }
 
+void Joypad::deserialize(std::ifstream& is) {
+    using ::deserialize;
+    deserialize(is, joypadRegister);
+}
+
 void Joypad::dPadKindImpl(DPadKind kind, bool on) {
     if (!getBit(joypadRegister, 4) && getBit(dPadState, static_cast<uint8_t>(kind)) && on) {
         irqHandler.request(IRQHandler::kJoypad);

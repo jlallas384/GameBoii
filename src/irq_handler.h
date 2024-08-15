@@ -19,6 +19,7 @@ public:
     void handle();
     void request(RequestKind rk);
     void serialize(std::ofstream& os) const;
+    void deserialize(std::ifstream& is);
 private:
     CPU& cpu;
     uint8_t intEnable = 0, intFlag = 0;

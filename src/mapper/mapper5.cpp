@@ -3,6 +3,10 @@
 #include "address_bus.h"
 #include "utils.h"
 
+Mapper5::~Mapper5() {
+    saveRAM();
+}
+
 void Mapper5::loadToAddrBus(AddressBus& addrBus) {
     for (int i = 0; i < 0x2000; i++) {
         addrBus.setWriter(i, [&](uint8_t byte) {
@@ -41,12 +45,22 @@ void Mapper5::loadToAddrBus(AddressBus& addrBus) {
     }
 }
 
-void Mapper5::serializeImpl(std::ofstream& of) const {
+void Mapper5::serialize(std::ofstream& of) const {
     using ::serialize;
+    serialize(of, ram);
     serialize(of, ramEnable);
     serialize(of, romBank1);
     serialize(of, romBank2);
     serialize(of, ramBank);
+}
+
+void Mapper5::deserialize(std::ifstream& is) {
+    using ::deserialize;
+    deserialize(is, ram);
+    deserialize(is, ramEnable);
+    deserialize(is, romBank1);
+    deserialize(is, romBank2);
+    deserialize(is, ramBank);
 }
 
 uint32_t Mapper5::getROMAddress(uint16_t addr) const {

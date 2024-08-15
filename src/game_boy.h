@@ -20,6 +20,7 @@ public:
     void run();
 private:
     void serialize(std::ofstream& of) const;
+    void deserialize(std::ifstream& is);
     AddressBus addrBus;
     CPU cpu;
     IRQHandler irqHandler;

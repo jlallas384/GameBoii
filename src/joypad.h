@@ -27,6 +27,7 @@ public:
     void press(ButtonKind kind);
     void unpress(ButtonKind kind);
     void serialize(std::ofstream& of) const;
+    void deserialize(std::ifstream& is);
 private:
     void dPadKindImpl(DPadKind kind, bool on);
     void buttonKindImpl(ButtonKind kind, bool on);

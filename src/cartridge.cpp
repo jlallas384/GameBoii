@@ -11,23 +11,22 @@
 #include "address_bus.h"
 
 Cartridge::Cartridge(std::vector<uint8_t> &rom, uint32_t ramSize, std::filesystem::path path, bool hasBattery) : rom(std::move(rom)), ram(ramSize), path(path), hasBattery(hasBattery) {
-    path.replace_extension("sav");
-    if (std::filesystem::exists(path)) {
-        std::ifstream saveFile(path, std::ios::binary);
-        saveFile.read(reinterpret_cast<char*>(ram.data()), ram.size());
-    }
+
 }
 
-Cartridge::~Cartridge() {
+void Cartridge::saveRAM() {
     if (hasBattery) {
-        std::ofstream saveFile(path.replace_extension("sav"), std::ios::binary);
-        saveFile.write(reinterpret_cast<char*>(ram.data()), ram.size());
+        std::ofstream saveFile(getPath().replace_extension("sav"), std::ios::binary);
+        serialize(saveFile);
     }
 }
 
-void Cartridge::serialize(std::ofstream& os) const {
-    ::serialize(os, ram);
-    serializeImpl(os);
+void Cartridge::loadRAM() {
+    auto savePath = getPath().replace_extension("sav");
+    if (std::filesystem::exists(savePath)) {
+        std::ifstream saveFile(savePath, std::ios::binary);
+        deserialize(saveFile);
+    }
 }
 
 std::filesystem::path Cartridge::getPath() const {

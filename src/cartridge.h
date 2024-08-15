@@ -19,16 +19,18 @@ enum class MapperKind {
 class Cartridge {
 public:
     Cartridge(std::vector<uint8_t>& rom, uint32_t ramSize, std::filesystem::path, bool hasBattery);
-    virtual ~Cartridge();
+    virtual ~Cartridge() = default;
     virtual void loadToAddrBus(AddressBus& addrBus) = 0;
-    void serialize(std::ofstream& of) const;
+    virtual void serialize(std::ofstream& of) const = 0;
+    virtual void deserialize(std::ifstream& is) = 0;
+    void saveRAM();
+    void loadRAM();
     std::filesystem::path getPath() const;
     static std::unique_ptr<Cartridge> create(MapperKind kind, std::vector<uint8_t> rom, uint32_t ramSize,
         std::filesystem::path path, bool hasBattery);
 private:
-    virtual void serializeImpl(std::ofstream& of) const = 0;
-    std::filesystem::path path;
     bool hasBattery;
+    std::filesystem::path path;
 protected:
     uint8_t readROM(uint32_t addr) const;
     uint8_t readRAM(uint32_t addr) const;

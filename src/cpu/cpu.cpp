@@ -41,6 +41,20 @@ void CPU::serialize(std::ofstream& of) const {
     serialize(of, ticksLeft);
 }
 
+void CPU::deserialize(std::ifstream& is) {
+    using ::deserialize;
+    deserialize(is, af);
+    deserialize(is, bc);
+    deserialize(is, de);
+    deserialize(is, hl);
+    deserialize(is, pc);
+    deserialize(is, sp);
+    deserialize(is, ime);
+    deserialize(is, halted);
+    deserialize(is, doubleSpeed);
+    deserialize(is, ticksLeft);
+}
+
 void CPU::execute() {
     uint8_t op = fetch8();
     switch (op) {

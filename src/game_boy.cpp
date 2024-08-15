@@ -142,7 +142,9 @@ void GameBoy::loadCartridge(std::filesystem::path path) {
 
     cartridge = createCartidge(rom[0x147], rom, ramSize, path);
 
+    cartridge->loadRAM();
     cartridge->loadToAddrBus(addrBus);
+
 
     for (int i = 0; i <= 0xff; i++) {
         addrBus.setReader(i, bootROM[i]);
@@ -189,4 +191,18 @@ void GameBoy::serialize(std::ofstream& of) const {
     serialize(of, wramBank);
     serialize(of, key1);
     serialize(of, wram);
+}
+
+void GameBoy::deserialize(std::ifstream& is) {
+    using ::deserialize;
+    cpu.deserialize(is);
+    irqHandler.deserialize(is);
+    joypad.deserialize(is);
+    ppu.deserialize(is);
+    timers.deserialize(is);
+    cartridge->deserialize(is);
+    deserialize(is, hram);
+    deserialize(is, wramBank);
+    deserialize(is, key1);
+    deserialize(is, wram);
 }
