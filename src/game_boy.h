@@ -17,6 +17,8 @@ public:
     GameBoy(std::unique_ptr<LCD> lcd);
     Joypad& getJoypad();
     void loadCartridge(std::filesystem::path path);
+    void saveState();
+    void loadState();
     void run();
 private:
     void serialize(std::ofstream& of) const;
@@ -32,4 +34,5 @@ private:
     uint8_t wramBank = 1, key1 = 0;
     std::array<std::array<uint8_t, 4096>, 8> wram{};
     std::array<uint8_t, 2304> bootROM;
+    bool pendingSave = false, pendingLoad = false;
 };

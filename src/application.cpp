@@ -64,6 +64,12 @@ void Application::pollEvents() {
                     case SDLK_SPACE:
                         joypad.press(ButtonKind::kStart);
                         break;
+                    case SDLK_0:
+                        gameBoy->saveState();
+                        break;
+                    case SDLK_1:
+                        gameBoy->loadState();
+                        break;
                 }
                 break;
             case SDL_KEYUP:
