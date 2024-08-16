@@ -23,6 +23,7 @@ public:
 private:
     void serialize(std::ofstream& of) const;
     void deserialize(std::ifstream& is);
+    void handlePending();
     AddressBus addrBus;
     CPU cpu;
     IRQHandler irqHandler;
@@ -34,5 +35,5 @@ private:
     uint8_t wramBank = 1, key1 = 0;
     std::array<std::array<uint8_t, 4096>, 8> wram{};
     std::array<uint8_t, 2304> bootROM;
-    bool pendingSave = false, pendingLoad = false;
+    bool pendingSave = false, pendingLoad = false, bootROMEnabled = true;
 };

@@ -32,7 +32,8 @@ GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrB
     }
 
     addrBus.setWriter(0xff50, [&](uint8_t byte) {
-        if (byte && cartridge) {
+        if (byte && cartridge && bootROMEnabled) {
+            bootROMEnabled = false;
             cartridge->loadToAddrBus(addrBus);
         }
     });
@@ -152,34 +153,27 @@ void GameBoy::loadCartridge(std::filesystem::path path) {
     for (int i = 0x200; i <= 0x8ff; i++) {
         addrBus.setReader(i, bootROM[i]);
     }
+
+    bootROMEnabled = true;
     ppu.reset();
     cpu.reset();
     key1 = 0;
 }
 
 void GameBoy::saveState() {
-    pendingSave = true;
+    if (!bootROMEnabled) {
+        pendingSave = true;
+    }
 }
 
 void GameBoy::loadState() {
-    pendingLoad = true;
+    if (!bootROMEnabled) {
+        pendingLoad = true;
+    }
 }
 
 void GameBoy::run() {
-    if (pendingLoad && cartridge && (addrBus.read(0xff41) & 3) == 1) {
-        pendingLoad = false;
-        auto path = cartridge->getPath().replace_extension("ss");
-        if (std::filesystem::exists(path)) {
-            std::ifstream is(path, std::ios::binary);
-            deserialize(is);
-        }
-    }
-    if (pendingSave && cartridge && (addrBus.read(0xff41) & 3) == 1) {
-        pendingSave = false;
-        auto path = cartridge->getPath().replace_extension("ss");
-        std::ofstream of(path, std::ios::binary);
-        serialize(of);
-    }
+    handlePending();
     cpu.tick();
     if (cpu.isDoubleSpeed()) {
         cpu.tick();
@@ -227,4 +221,24 @@ void GameBoy::deserialize(std::ifstream& is) {
     deserialize(is, wramBank);
     deserialize(is, key1);
     deserialize(is, wram);
+}
+
+void GameBoy::handlePending() {
+    if ((addrBus.read(0xff41) & 3) == 1) {
+        if (pendingLoad) {
+            pendingLoad = false;
+            auto path = cartridge->getPath().replace_extension("ss");
+            if (std::filesystem::exists(path)) {
+                std::ifstream is(path, std::ios::binary);
+                deserialize(is);
+            }
+        }
+
+        if (pendingSave) {
+            pendingSave = false;
+            auto path = cartridge->getPath().replace_extension("ss");
+            std::ofstream of(path, std::ios::binary);
+            serialize(of);
+        }
+    }
 }

@@ -19,7 +19,7 @@ void Application::run() {
     std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
     while (!quit) {
         std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
-        if (now - last >= 16670us) {
+        if (now - last >= 16670us / speed) {
             for (int i = 0; i < 17556; i++) {
                 gameBoy->run();
                 if (i % 10 == 0) {
@@ -64,7 +64,10 @@ void Application::pollEvents() {
                     case SDLK_SPACE:
                         joypad.press(ButtonKind::kStart);
                         break;
-                    case SDLK_0:
+                    case SDLK_f:
+                        speed = (speed == 1 ? 3 : 1);
+                        break;
+                    case SDLK_2:
                         gameBoy->saveState();
                         break;
                     case SDLK_1:

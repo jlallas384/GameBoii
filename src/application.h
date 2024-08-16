@@ -13,5 +13,6 @@ private:
     void pollEvents();
     bool quit = false;
     SDL_Window* window = nullptr;
+    int speed = 1;
     std::unique_ptr<GameBoy> gameBoy;
 };
