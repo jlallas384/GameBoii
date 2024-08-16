@@ -8,7 +8,7 @@
 
 class AddressBus;
 
-enum class MapperKind {
+enum class MapperKind : uint8_t {
     kNone,
     kMBC1,
     kMBC2,
@@ -18,12 +18,12 @@ enum class MapperKind {
 
 class Cartridge {
 public:
-    Cartridge(std::vector<uint8_t>& rom, uint32_t ramSize, std::filesystem::path, bool hasBattery);
+    Cartridge(std::vector<uint8_t>& rom, uint32_t ramSize, const std::filesystem::path& path, bool hasBattery);
     virtual ~Cartridge() = default;
     virtual void loadToAddrBus(AddressBus& addrBus) = 0;
     virtual void serialize(std::ofstream& of) const = 0;
     virtual void deserialize(std::ifstream& is) = 0;
-    void saveRAM();
+    void saveRAM() const;
     void loadRAM();
     std::filesystem::path getPath() const;
     static std::unique_ptr<Cartridge> create(MapperKind kind, std::vector<uint8_t> rom, uint32_t ramSize,

@@ -2,14 +2,14 @@
 #include <cstdint>
 #include <fstream>
 
-enum class DPadKind {
+enum class DPadKind : uint8_t {
     kRight,
     kLeft,
     kUp,
     kDown
 };
 
-enum class ButtonKind {
+enum class ButtonKind : uint8_t {
     kA,
     kB,
     kSelect,

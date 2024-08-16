@@ -190,8 +190,7 @@ void PPU::tick() {
                 state.wShown = false;
             }
             if (tickCount % 2 == 0 && state.scanlineObjects.size() < 10) {
-                auto object = createObject(tickCount / 2 - 1);
-                if (object.isAtScanline(ly)) {
+                if (auto object = createObject(tickCount / 2 - 1); object.isAtScanline(ly)) {
                     state.scanlineObjects.push_back(object);
                 }
             }
@@ -330,7 +329,7 @@ void PPU::tickHDMA() {
 }
 
 Tile PPU::getObjectTile(uint8_t index, uint8_t bank) const {
-    return Tile(std::span(vram[bank].begin() + index * 16, 16));
+    return { std::span(vram[bank].begin() + index * 16, 16) };
 }
 
 BackgroundTile PPU::getNonObjectTile(uint8_t index, uint8_t attribute) const {
@@ -386,11 +385,11 @@ ObjectLayer PPU::createObject(uint8_t index) const {
     ObjectData data = { oam[index], oam[index + 1], oam[index + 2], oam[index + 3] };
     uint8_t bank = getBit(data.attributes, 3);
     if (!getBit(lcdc, 2)) {
-        return ObjectLayer(getObjectTile(data.tileIndex, bank), data);
+        return { getObjectTile(data.tileIndex, bank), data };
     } else {
         Tile t1 = getObjectTile(data.tileIndex & 0xfe, bank);
         Tile t2 = getObjectTile(data.tileIndex | 0x1, bank);
-        return ObjectLayer(t1, t2, data);
+        return { t1, t2, data };
     }
 }
 

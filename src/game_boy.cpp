@@ -94,8 +94,8 @@ uint32_t getRAMSize(uint8_t value) {
     }
 }
 
-std::unique_ptr<Cartridge> createCartidge(uint8_t value, std::vector<uint8_t>& rom, uint32_t ramSize, std::filesystem::path path) {
-    MapperKind kind = MapperKind::kNone;
+std::unique_ptr<Cartridge> createCartridge(uint8_t value, const std::vector<uint8_t>& rom, uint32_t ramSize, const std::filesystem::path& path) {
+    MapperKind kind;
     bool hasBattery = false;
     switch (value) {
         case 0x0:
@@ -131,7 +131,7 @@ std::unique_ptr<Cartridge> createCartidge(uint8_t value, std::vector<uint8_t>& r
     return Cartridge::create(kind, rom, ramSize, path, hasBattery);
 }
 
-void GameBoy::loadCartridge(std::filesystem::path path) {
+void GameBoy::loadCartridge(const std::filesystem::path& path) {
     std::ifstream file(path, std::ios::binary);
     file.seekg(0x148);
     auto value = file.peek(); // TODO error check
@@ -141,7 +141,7 @@ void GameBoy::loadCartridge(std::filesystem::path path) {
     file.read(reinterpret_cast<char*>(rom.data()), romSize);
     uint32_t ramSize = getRAMSize(rom[0x149]);
 
-    cartridge = createCartidge(rom[0x147], rom, ramSize, path);
+    cartridge = createCartridge(rom[0x147], rom, ramSize, path);
 
     cartridge->loadRAM();
     cartridge->loadToAddrBus(addrBus);
@@ -227,8 +227,7 @@ void GameBoy::handlePending() {
     if ((addrBus.read(0xff41) & 3) == 1) {
         if (pendingLoad) {
             pendingLoad = false;
-            auto path = cartridge->getPath().replace_extension("ss");
-            if (std::filesystem::exists(path)) {
+            if (auto path = cartridge->getPath().replace_extension("ss"); exists(path)) {
                 std::ifstream is(path, std::ios::binary);
                 deserialize(is);
             }

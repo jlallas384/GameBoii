@@ -8,7 +8,7 @@ class AddressBus;
 
 class IRQHandler {
 public:
-    enum RequestKind {
+    enum RequestKind : uint8_t {
         kVBlank,
         kStat,
         kTimer,
@@ -18,7 +18,7 @@ public:
     IRQHandler(CPU& cpu, AddressBus& addrBus);
     void handle();
     void request(RequestKind rk);
-    void serialize(std::ofstream& os) const;
+    void serialize(std::ofstream& of) const;
     void deserialize(std::ifstream& is);
 private:
     CPU& cpu;

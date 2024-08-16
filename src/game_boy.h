@@ -16,7 +16,7 @@ class GameBoy {
 public:
     GameBoy(std::unique_ptr<LCD> lcd);
     Joypad& getJoypad();
-    void loadCartridge(std::filesystem::path path);
+    void loadCartridge(const std::filesystem::path& path);
     void saveState();
     void loadState();
     void run();

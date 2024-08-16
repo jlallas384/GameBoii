@@ -8,13 +8,12 @@
 #include "mapper/mapper2.h"
 #include "mapper/mapper3.h"
 #include "mapper/mapper5.h"
-#include "address_bus.h"
 
-Cartridge::Cartridge(std::vector<uint8_t> &rom, uint32_t ramSize, std::filesystem::path path, bool hasBattery) : rom(std::move(rom)), ram(ramSize), path(path), hasBattery(hasBattery) {
+Cartridge::Cartridge(std::vector<uint8_t> &rom, uint32_t ramSize, const std::filesystem::path& path, bool hasBattery) : hasBattery(hasBattery), path(path), rom(std::move(rom)), ram(ramSize) {
 
 }
 
-void Cartridge::saveRAM() {
+void Cartridge::saveRAM() const {
     if (hasBattery) {
         std::ofstream saveFile(getPath().replace_extension("sav"), std::ios::binary);
         serialize(saveFile);
@@ -45,9 +44,8 @@ std::unique_ptr<Cartridge> Cartridge::create(MapperKind kind, std::vector<uint8_
             return std::make_unique<Mapper3>(rom, ramSize, path, hasBattery);
         case MapperKind::kMBC5:
             return std::make_unique<Mapper5>(rom, ramSize, path, hasBattery);
-        default:
-            return nullptr;
     }
+    return nullptr;
 }
 
 uint8_t Cartridge::readROM(uint32_t addr) const {

@@ -1,6 +1,6 @@
 #include "tile.h"
 #include "utils.h"
-#include <cassert>
+
 Tile::Tile(std::span<const uint8_t> mem) : mem(mem) {
 
 }

@@ -5,9 +5,9 @@
 #include "alu.h"
 
 struct gb_int {
-    gb_int() {}
+    gb_int() = default;
     gb_int(int value) : high(static_cast<uint8_t>(value >> 8)), low(value & 0xff) {}
-    operator uint16_t() {
+    operator uint16_t() const {
         return static_cast<uint16_t>((high << 8) | low);
     }
     uint8_t high = 0, low = 0;

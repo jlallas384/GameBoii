@@ -6,16 +6,16 @@
 class Flags {
 public:
     Flags(uint8_t& value) : value(value) {}
-    void setZ(bool b) {
+    void setZ(bool b) const {
         value = setBit(value, 7, b);
     }
-    void setN(bool b) {
+    void setN(bool b) const {
         value = setBit(value, 6, b);
     }
-    void setH(bool b) {
+    void setH(bool b) const {
         value = setBit(value, 5, b);
     }
-    void setC(bool b) {
+    void setC(bool b) const {
         value = setBit(value, 4, b);
     }
     bool getZ() const {

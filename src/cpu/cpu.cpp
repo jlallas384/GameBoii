@@ -685,8 +685,7 @@ void CPU::execute() {
         case 0xda:
         {
             uint16_t addr = fetch16();
-            bool cond = getCondition(op >> 3 & 0x3);
-            if (cond) {
+            if (getCondition(op >> 3 & 0x3)) {
                 pc = addr;
                 ticksLeft = 4;
             } else {
@@ -707,8 +706,7 @@ void CPU::execute() {
         case 0x38:
         {
             int8_t imme = fetch8();
-            bool cond = getCondition(op >> 3 & 0x3);
-            if (cond) {
+            if (getCondition(op >> 3 & 0x3)) {
                 pc = pc + imme;
                 ticksLeft = 3;
             } else {
@@ -737,8 +735,7 @@ void CPU::execute() {
         case 0xdc:
         {
             uint16_t addr = fetch16();
-            bool cond = getCondition(op >> 3 & 0x3);
-            if (cond) {
+            if (getCondition(op >> 3 & 0x3)) {
                 call(addr);
                 ticksLeft = 6;
             } else {
@@ -768,8 +765,7 @@ void CPU::execute() {
         case 0xd0:
         case 0xd8:
         {
-            bool cond = getCondition(op >> 3 & 0x3);
-            if (cond) {
+            if (getCondition(op >> 3 & 0x3)) {
                 pc.low = addrBus.read(sp);
                 pc.high = addrBus.read(sp + 1);
                 sp = sp + 2;
@@ -869,8 +865,7 @@ void CPU::execute() {
         case 0x10:
         {
             fetch8();
-            uint8_t key1 = addrBus.read(0xff4d);
-            if (key1 & 1) {
+            if (uint8_t key1 = addrBus.read(0xff4d); key1 & 1) {
                 addrBus.write(0xff4d, key1 ^ 1);
                 doubleSpeed ^= true;
             }
