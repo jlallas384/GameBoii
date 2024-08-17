@@ -54,10 +54,15 @@ private:
     uint8_t getPaletteColor(uint8_t palette, uint8_t id) const;
     void doLYCompare();
     void doSingleDotDrawing();
+
+    void doOAMScanMode();
+    void doDrawingMode();
+    void doHBlankMode();
+    void doVBlankMode();
     // CGB
 
-    Color getBGColor(uint8_t index, uint8_t colorId) const;
-    Color getObjColor(uint8_t index, uint8_t colorId) const;
+    Color getBackgroundColor(uint8_t index, uint8_t colorId) const;
+    Color getObjectColor(uint8_t index, uint8_t colorId) const;
 
 
     AddressBus& addrBus;
@@ -75,11 +80,11 @@ private:
 
     // CGB
     uint8_t vramBank = 0;
-    std::array<uint8_t, 64> bgPaletteRAM{};
-    uint8_t bgPaletteIndex = 0;
+    std::array<uint8_t, 64> backgroundPaletteRAM{};
+    uint8_t backgroundPaletteIndex = 0;
 
-    std::array<uint8_t, 64> objPaletteRAM{};
-    uint8_t objPaletteIndex = 0;
+    std::array<uint8_t, 64> objectPaletteRAM{};
+    uint8_t objectPaletteIndex = 0;
     uint16_t hdmaSource = 0, hdmaDest = 0;
     bool isCGBMode = true;
 };

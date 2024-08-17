@@ -21,8 +21,7 @@ void Cartridge::saveRAM() const {
 }
 
 void Cartridge::loadRAM() {
-    auto savePath = getPath().replace_extension("sav");
-    if (std::filesystem::exists(savePath)) {
+    if (const auto savePath = getPath().replace_extension("sav"); exists(savePath)) {
         std::ifstream saveFile(savePath, std::ios::binary);
         deserialize(saveFile);
     }
@@ -32,7 +31,7 @@ std::filesystem::path Cartridge::getPath() const {
     return path;
 }
 
-std::unique_ptr<Cartridge> Cartridge::create(MapperKind kind, std::vector<uint8_t> rom, uint32_t ramSize, std::filesystem::path path, bool hasBattery) {
+std::unique_ptr<Cartridge> Cartridge::create(MapperKind kind, std::vector<uint8_t> rom, uint32_t ramSize, const std::filesystem::path& path, bool hasBattery) {
     switch (kind) {
         case MapperKind::kNone:
             return std::make_unique<Mapper0>(rom, ramSize, path, hasBattery);

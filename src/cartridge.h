@@ -27,7 +27,7 @@ public:
     void loadRAM();
     std::filesystem::path getPath() const;
     static std::unique_ptr<Cartridge> create(MapperKind kind, std::vector<uint8_t> rom, uint32_t ramSize,
-        std::filesystem::path path, bool hasBattery);
+                                             const std::filesystem::path& path, bool hasBattery);
 private:
     bool hasBattery;
     std::filesystem::path path;

@@ -85,33 +85,33 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
         vramBank = byte & 0x1;
     });
 
-    addrBus.setReader(0xff68, bgPaletteIndex);
-    addrBus.setWriter(0xff68, bgPaletteIndex);
+    addrBus.setReader(0xff68, backgroundPaletteIndex);
+    addrBus.setWriter(0xff68, backgroundPaletteIndex);
 
     addrBus.setReader(0xff69, [&]() {
-        return currentMode != kDrawing ? bgPaletteRAM[bgPaletteIndex & 63] : 0xff;
+        return currentMode != kDrawing ? backgroundPaletteRAM[backgroundPaletteIndex & 63] : 0xff;
     });
     addrBus.setWriter(0xff69, [&](uint8_t byte) {
         if (currentMode != kDrawing) {
-            bgPaletteRAM[bgPaletteIndex & 63] = byte;
+            backgroundPaletteRAM[backgroundPaletteIndex & 63] = byte;
         }
-        if (getBit(bgPaletteIndex, 7)) {
-            bgPaletteIndex = (1 << 7) | (((bgPaletteIndex & 63) + 1) & 63);
+        if (getBit(backgroundPaletteIndex, 7)) {
+            backgroundPaletteIndex = (1 << 7) | (((backgroundPaletteIndex & 63) + 1) & 63);
         }
     });
 
-    addrBus.setReader(0xff6a, objPaletteIndex);
-    addrBus.setWriter(0xff6a, objPaletteIndex);
+    addrBus.setReader(0xff6a, objectPaletteIndex);
+    addrBus.setWriter(0xff6a, objectPaletteIndex);
 
     addrBus.setReader(0xff6b, [&]() {
-        return currentMode != kDrawing ? objPaletteRAM[objPaletteIndex & 63] : 0xff;
+        return currentMode != kDrawing ? objectPaletteRAM[objectPaletteIndex & 63] : 0xff;
     });
     addrBus.setWriter(0xff6b, [&](uint8_t byte) {
         if (currentMode != kDrawing) {
-            objPaletteRAM[objPaletteIndex & 63] = byte;
+            objectPaletteRAM[objectPaletteIndex & 63] = byte;
         }
-        if (getBit(objPaletteIndex, 7)) {
-            objPaletteIndex = (1 << 7) | (((objPaletteIndex & 63) + 1) & 63);
+        if (getBit(objectPaletteIndex, 7)) {
+            objectPaletteIndex = (1 << 7) | (((objectPaletteIndex & 63) + 1) & 63);
         }
     });
 
@@ -179,77 +179,16 @@ void PPU::tick() {
 
     switch (currentMode) {
         case kOAMScan:
-            if (tickCount == 1) {
-                if (getBit(stat, 5)) {
-                    irqHandler.request(IRQHandler::kStat);
-                }
-                state.scanlineObjects.clear();
-                doLYCompare();
-                state.wyCond |= wy == ly;
-                state.wxCond = false;
-                state.wShown = false;
-            }
-            if (tickCount % 2 == 0 && state.scanlineObjects.size() < 10) {
-                if (auto object = createObject(tickCount / 2 - 1); object.isAtScanline(ly)) {
-                    state.scanlineObjects.push_back(object);
-                }
-            }
-            if (tickCount == 80) {
-                nextMode = kDrawing;
-            }
+            doOAMScanMode();
             break;
         case kDrawing:
-            if (tickCount == 1 && !isCGBMode) {
-                std::stable_sort(state.scanlineObjects.begin(), state.scanlineObjects.end());
-            }
-            if (state.x < LCD::width) {
-                state.wxCond |= state.x + 7 == wx;
-                doSingleDotDrawing();
-            }
-            if (tickCount == 172) {
-                nextMode = kHBlank;
-            }
+            doDrawingMode();
             break;
         case kHBlank:
-            if (tickCount == 1) {
-                if (getBit(stat, 3)) {
-                    irqHandler.request(IRQHandler::kStat);
-                }
-                tickHDMA();
-            }
-            if (tickCount == 204) {
-                ly++;
-                if (ly < LCD::height) {
-                    if (state.wShown) {
-                        state.wl++;
-                    }
-                    nextMode = kOAMScan;
-                } else {
-                    nextMode = kVBlank;
-                }
-            }
+            doHBlankMode();
             break;
         case kVBlank:
-            if (tickCount == 1) {
-                doLYCompare();
-                if (ly == 144) {
-                    lcd->refresh();
-                    if (getBit(stat, 4)) {
-                        irqHandler.request(IRQHandler::kStat);
-                    }
-                    irqHandler.request(IRQHandler::kVBlank);
-                }
-            }
-            if (tickCount == 456) {
-                ly++;
-                tickCount = 0;
-            }
-            if (ly == 154) {
-                nextMode = kOAMScan;
-                state.wyCond = false;
-                state.wl = 0;
-                ly = 0;
-            }
+            doVBlankMode();
             break;
         case kDisabled:
             break;
@@ -273,10 +212,10 @@ void PPU::serialize(std::ofstream& of) const {
     serialize(of, obp1);
     serialize(of, stat);
     serialize(of, vramBank);
-    serialize(of, bgPaletteRAM);
-    serialize(of, bgPaletteIndex);
-    serialize(of, objPaletteRAM);
-    serialize(of, objPaletteIndex);
+    serialize(of, backgroundPaletteRAM);
+    serialize(of, backgroundPaletteIndex);
+    serialize(of, objectPaletteRAM);
+    serialize(of, objectPaletteIndex);
     serialize(of, hdmaSource);
     serialize(of, hdmaDest);
     state.serialize(of);
@@ -299,10 +238,10 @@ void PPU::deserialize(std::ifstream& is) {
     deserialize(is, obp1);
     deserialize(is, stat);
     deserialize(is, vramBank);
-    deserialize(is, bgPaletteRAM);
-    deserialize(is, bgPaletteIndex);
-    deserialize(is, objPaletteRAM);
-    deserialize(is, objPaletteIndex);
+    deserialize(is, backgroundPaletteRAM);
+    deserialize(is, backgroundPaletteIndex);
+    deserialize(is, objectPaletteRAM);
+    deserialize(is, objectPaletteIndex);
     deserialize(is, hdmaSource);
     deserialize(is, hdmaDest);
     state.deserialize(is);
@@ -363,10 +302,9 @@ std::tuple<uint8_t, Color, bool> PPU::getBackgroundColorAt(uint8_t i, uint8_t j)
     BackgroundTile t = getBackgroundTileAt(i / 8, j / 8);
     uint8_t id = t.at(i % 8, j % 8);
     if (isCGBMode) {
-        return { id, getBGColor(t.getPalette(), id), t.getPriority() };
-    } else {
-        return { id, getBGColor(0, getPaletteColor(bgp, id)), t.getPriority() };
+        return { id, getBackgroundColor(t.getPalette(), id), t.getPriority() };
     }
+    return { id, getBackgroundColor(0, getPaletteColor(bgp, id)), t.getPriority() };
 }
 
 std::tuple<uint8_t, Color, bool> PPU::getWindowColorAt(uint8_t i, uint8_t j) const {
@@ -374,10 +312,9 @@ std::tuple<uint8_t, Color, bool> PPU::getWindowColorAt(uint8_t i, uint8_t j) con
     BackgroundTile t = getWindowTileAt(i / 8, j / 8);
     uint8_t id = t.at(i % 8, j % 8);
     if (isCGBMode) {
-        return { id, getBGColor(t.getPalette(), id), t.getPriority() };
-    } else {
-        return { id, getBGColor(0, getPaletteColor(bgp, id)), t.getPriority() };
+        return { id, getBackgroundColor(t.getPalette(), id), t.getPriority() };
     }
+    return { id, getBackgroundColor(0, getPaletteColor(bgp, id)), t.getPriority() };
 }
 
 ObjectLayer PPU::createObject(uint8_t index) const {
@@ -424,12 +361,12 @@ void PPU::doSingleDotDrawing() {
                 if (id == 0) continue;
                 if (isCGBMode) {
                     if (bgId == 0 || !getBit(lcdc, 0) || (!bgPriority && !obj.getPriority())) {
-                        lcd->setPixel(ly, state.x, getObjColor(obj.getCGBPalette(), id));
+                        lcd->setPixel(ly, state.x, getObjectColor(obj.getCGBPalette(), id));
                     }
                 } else {
                     if (!obj.getPriority() || bgId == 0) {
                         uint8_t palette = obj.getDMGPalette() ? obp1 : obp0;
-                        lcd->setPixel(ly, state.x, getObjColor(obj.getDMGPalette(), getPaletteColor(palette, id)));
+                        lcd->setPixel(ly, state.x, getObjectColor(obj.getDMGPalette(), getPaletteColor(palette, id)));
                     }
                 }
                 break;
@@ -439,12 +376,89 @@ void PPU::doSingleDotDrawing() {
     state.x++;
 }
 
-Color PPU::getBGColor(uint8_t index, uint8_t colorId) const {
-    return bgPaletteRAM[index * 8 + colorId * 2] | (bgPaletteRAM[index * 8 + colorId * 2 + 1] << 8);
+void PPU::doOAMScanMode() {
+    if (tickCount == 1) {
+        if (getBit(stat, 5)) {
+            irqHandler.request(IRQHandler::kStat);
+        }
+        state.scanlineObjects.clear();
+        doLYCompare();
+        state.wyCond |= wy == ly;
+        state.wxCond = false;
+        state.wShown = false;
+    }
+    if (tickCount % 2 == 0 && state.scanlineObjects.size() < 10) {
+        if (const auto object = createObject(tickCount / 2 - 1); object.isAtScanline(ly)) {
+            state.scanlineObjects.push_back(object);
+        }
+    }
+    if (tickCount == 80) {
+        nextMode = kDrawing;
+    }
 }
 
-Color PPU::getObjColor(uint8_t index, uint8_t colorId) const {
-    return objPaletteRAM[index * 8 + colorId * 2] | (objPaletteRAM[index * 8 + colorId * 2 + 1] << 8);
+void PPU::doDrawingMode() {
+    if (tickCount == 1 && !isCGBMode) {
+        std::stable_sort(state.scanlineObjects.begin(), state.scanlineObjects.end());
+    }
+    if (state.x < LCD::width) {
+        state.wxCond |= state.x + 7 == wx;
+        doSingleDotDrawing();
+    }
+    if (tickCount == 172) {
+        nextMode = kHBlank;
+    }
+}
+
+void PPU::doHBlankMode() {
+    if (tickCount == 1) {
+        if (getBit(stat, 3)) {
+            irqHandler.request(IRQHandler::kStat);
+        }
+        tickHDMA();
+    }
+    if (tickCount == 204) {
+        ly++;
+        if (ly < LCD::height) {
+            if (state.wShown) {
+                state.wl++;
+            }
+            nextMode = kOAMScan;
+        } else {
+            nextMode = kVBlank;
+        }
+    }
+}
+
+void PPU::doVBlankMode() {
+    if (tickCount == 1) {
+        doLYCompare();
+        if (ly == 144) {
+            lcd->refresh();
+            if (getBit(stat, 4)) {
+                irqHandler.request(IRQHandler::kStat);
+            }
+            irqHandler.request(IRQHandler::kVBlank);
+        }
+    }
+    if (tickCount == 456) {
+        ly++;
+        tickCount = 0;
+    }
+    if (ly == 154) {
+        nextMode = kOAMScan;
+        state.wyCond = false;
+        state.wl = 0;
+        ly = 0;
+    }
+}
+
+Color PPU::getBackgroundColor(uint8_t index, uint8_t colorId) const {
+    return backgroundPaletteRAM[index * 8 + colorId * 2] | (backgroundPaletteRAM[index * 8 + colorId * 2 + 1] << 8);
+}
+
+Color PPU::getObjectColor(uint8_t index, uint8_t colorId) const {
+    return objectPaletteRAM[index * 8 + colorId * 2] | (objectPaletteRAM[index * 8 + colorId * 2 + 1] << 8);
 }
 
 void PPU::State::serialize(std::ofstream& of) const {
