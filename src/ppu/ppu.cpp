@@ -166,7 +166,7 @@ void PPU::reset() {
 // TODO clean this
 void PPU::tick() {
     tickDMA();
-    if (getBit(addrBus.read(0xff4d), 7)) {
+    if (addrBus.readBit(0xff4d, 7)) {
         tickDMA();
     }
     if (currentMode != nextMode) {
@@ -261,10 +261,11 @@ void PPU::tickDMA() {
 
 void PPU::tickHDMA() {
     if (!state.hdmaLength) return;
-    for (int i = 0; i < 16; i++) {
-        vram[vramBank][hdmaDest++] = addrBus.read(hdmaSource++);
-        state.hdmaLength--;
-    }
+    std::generate_n(vram[vramBank].begin() + hdmaDest, 16, [&]() {
+        return addrBus.read(hdmaSource++);
+    });
+    hdmaDest += 16;
+    state.hdmaLength -= 16;
 }
 
 Tile PPU::getObjectTile(uint8_t index, uint8_t bank) const {
