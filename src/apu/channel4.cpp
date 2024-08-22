@@ -30,11 +30,7 @@ Channel4::Channel4(AddressBus& addrBus) {
     });
 }
 
-void Channel4::tick() {
-    if (!active) {
-        digitalOutput = 0;
-        return;
-    }
+void Channel4::tickImpl() {
     clockTicksLeft--;
     if (!clockTicksLeft) {
         digitalOutput = shiftLFSR() ? volume : 0;
