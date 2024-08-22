@@ -6,30 +6,13 @@
 #include <exception>
 #include "cartridge.h"
 
-GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrBus), joypad(addrBus, irqHandler), ppu(addrBus, std::move(lcd), irqHandler), timers(addrBus, irqHandler) {
+GameBoy::GameBoy(std::unique_ptr<LCD> lcd) : cpu(addrBus), irqHandler(cpu, addrBus), joypad(addrBus, irqHandler), ppu(addrBus, std::move(lcd), irqHandler), apu(addrBus), timers(addrBus, irqHandler, apu) {
     std::ifstream file("cgb_boot.bin", std::ios::binary);
     file.read(reinterpret_cast<char*>(bootROM.data()), bootROM.size());
     for (int i = 0; i < 2304; i++) {
         addrBus.setReader(i, bootROM[i]);
     }
 
-    for (int i = 0xff10; i <= 0xff26; i++) {
-        addrBus.setReader(i, [&]() {
-            return 0;
-        });
-        addrBus.setWriter(i, [&](uint8_t byte) {
-
-        });
-    }
-
-    for (int i = 0xff30; i <= 0xff3f; i++) {
-        addrBus.setReader(i, [&]() {
-            return 0;
-        });
-        addrBus.setWriter(i, [&](uint8_t byte) {
-
-        });
-    }
 
     addrBus.setWriter(0xff50, [&](uint8_t byte) {
         if (byte && cartridge && bootROMEnabled) {
@@ -178,20 +161,25 @@ void GameBoy::run() {
     if (cpu.isDoubleSpeed()) {
         cpu.tick();
     }
-    ppu.tick();
-    ppu.tick();
-    ppu.tick();
-    ppu.tick();
-    timers.tick();
-    timers.tick();
-    timers.tick();
-    timers.tick();
-    if (cpu.isDoubleSpeed()) {
-        timers.tick();
-        timers.tick();
-        timers.tick();
-        timers.tick();
+    const bool isDoubleSpeed = cpu.isDoubleSpeed();
+    ppu.tick(isDoubleSpeed);
+    ppu.tick(isDoubleSpeed);
+    ppu.tick(isDoubleSpeed);
+    ppu.tick(isDoubleSpeed);
+    timers.tick(isDoubleSpeed);
+    timers.tick(isDoubleSpeed);
+    timers.tick(isDoubleSpeed);
+    timers.tick(isDoubleSpeed);
+    if (isDoubleSpeed) {
+        timers.tick(isDoubleSpeed);
+        timers.tick(isDoubleSpeed);
+        timers.tick(isDoubleSpeed);
+        timers.tick(isDoubleSpeed);
     }
+    apu.tick();
+    apu.tick();
+    apu.tick();
+    apu.tick();
     irqHandler.handle();
 }
 

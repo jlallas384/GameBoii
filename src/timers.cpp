@@ -3,8 +3,9 @@
 #include "irq_handler.h"
 #include "address_bus.h"
 #include "utils.h"
+#include "apu/apu.h"
 
-Timers::Timers(AddressBus& addrBus, IRQHandler& irqHandler) : irqHandler(irqHandler) {
+Timers::Timers(AddressBus& addrBus, IRQHandler& irqHandler, APU& apu) : irqHandler(irqHandler), apu(apu) {
     addrBus.setReader(0xff04, [&]() {
         return div >> 8;
     });
@@ -19,10 +20,15 @@ Timers::Timers(AddressBus& addrBus, IRQHandler& irqHandler) : irqHandler(irqHand
     addrBus.setWriter(0xff07, tac);
 }
 
-void Timers::tick() {
+void Timers::tick(bool isDoubleSpeed) {
+    uint16_t previousDIV = div;
     div++;
+    uint8_t bitPos = 13 + isDoubleSpeed;
+    if (getBit(previousDIV, bitPos) && !getBit(div, bitPos)) {
+        apu.divTick();
+    }
     static uint8_t pos[] = { 9, 3, 5, 7 };
-    uint8_t bitPos = pos[tac & 0x3];
+    bitPos = pos[tac & 0x3];
     bool currentAND = getBit(tac, 2) && getBit(div, bitPos);
     if (!currentAND && previousAND) {
         tima++;

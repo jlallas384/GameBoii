@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 include_directories(src)
 add_subdirectory(tests)
 
-add_executable(${CMAKE_PROJECT_NAME})
+add_executable(${CMAKE_PROJECT_NAME} WIN32)
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     src/address_bus.cpp
@@ -46,10 +46,23 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     src/ppu/tile.h
     src/ppu/object_layer.cpp   
     src/ppu/object_layer.h
-    src/ppu/lcd
+    src/ppu/lcd.h
     src/utils.h
+    src/apu/apu.h 
+    src/apu/apu.cpp
+    src/apu/base_channel.h
+    src/apu/base_channel.cpp
+    src/apu/channel1.h 
+    src/apu/channel1.cpp
+    src/apu/channel2.h 
+    src/apu/channel2.cpp
+    src/apu/channel3.h 
+    src/apu/channel3.cpp
+    src/apu/channel4.h
+    src/apu/channel4.cpp 
+    src/apu/audio_engine.h
+    src/apu/audio_engine.cpp
 )
-
 
 configure_file(cgb_boot.bin cgb_boot.bin COPYONLY)
 

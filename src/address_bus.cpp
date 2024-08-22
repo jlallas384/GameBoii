@@ -3,8 +3,8 @@
 #include "utils.h"
 
 AddressBus::AddressBus() : readAddrs(1 << 16), writeAddrs(1 << 16) {
-    std::ranges::fill(readAddrs, [&]() { return 0xff; });
-    std::ranges::fill(writeAddrs, [&](uint8_t byte) {});
+    std::ranges::fill(readAddrs, []() { return 0xff; });
+    std::ranges::fill(writeAddrs, [](uint8_t) {});
 }
 
 uint8_t AddressBus::read(uint16_t addr) const {

@@ -15,7 +15,7 @@ class PPU {
 public:
     PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler);
     void reset();
-    void tick();
+    void tick(bool isDoubleSpeed);
     void serialize(std::ofstream& of) const;
     void deserialize(std::ifstream& is);
 private:

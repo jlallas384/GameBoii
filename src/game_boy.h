@@ -11,6 +11,7 @@
 #include "ppu/lcd.h"
 #include "timers.h"
 #include "joypad.h"
+#include "apu/apu.h"
 
 class GameBoy {
 public:
@@ -29,7 +30,9 @@ private:
     IRQHandler irqHandler;
     Joypad joypad;
     PPU ppu;
+    APU apu;
     Timers timers;
+
     std::unique_ptr<Cartridge> cartridge;
     std::array<uint8_t, 127> hram{};
     uint8_t wramBank = 1, key1 = 0;

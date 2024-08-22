@@ -164,9 +164,9 @@ void PPU::reset() {
 }
 
 // TODO clean this
-void PPU::tick() {
+void PPU::tick(bool isDoubleSpeed) {
     tickDMA();
-    if (addrBus.readBit(0xff4d, 7)) {
+    if (isDoubleSpeed) {
         tickDMA();
     }
     if (currentMode != nextMode) {

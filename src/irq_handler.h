@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <iostream>
+#include <fstream>
 
 class CPU;
 class AddressBus;
