@@ -305,7 +305,7 @@ std::tuple<uint8_t, Color, bool> PPU::getBackgroundColorAt(uint8_t i, uint8_t j)
     if (isCGBMode) {
         return { id, getBackgroundColor(t.getPalette(), id), t.getPriority() };
     }
-    return { id, getBackgroundColor(0, getPaletteColor(bgp, id)), t.getPriority() };
+    return { id, getBackgroundColor(0, getDMGPaletteColor(bgp, id)), t.getPriority() };
 }
 
 std::tuple<uint8_t, Color, bool> PPU::getWindowColorAt(uint8_t i, uint8_t j) const {
@@ -315,7 +315,7 @@ std::tuple<uint8_t, Color, bool> PPU::getWindowColorAt(uint8_t i, uint8_t j) con
     if (isCGBMode) {
         return { id, getBackgroundColor(t.getPalette(), id), t.getPriority() };
     }
-    return { id, getBackgroundColor(0, getPaletteColor(bgp, id)), t.getPriority() };
+    return { id, getBackgroundColor(0, getDMGPaletteColor(bgp, id)), t.getPriority() };
 }
 
 ObjectLayer PPU::createObject(uint8_t index) const {
@@ -331,7 +331,7 @@ ObjectLayer PPU::createObject(uint8_t index) const {
     }
 }
 
-uint8_t PPU::getPaletteColor(uint8_t palette, uint8_t id) const {
+uint8_t PPU::getDMGPaletteColor(uint8_t palette, uint8_t id) {
     return (palette >> (id * 2)) & 0x3;
 }
 
@@ -356,21 +356,21 @@ void PPU::doSingleDotDrawing() {
     }
     lcd->setPixel(ly, state.x, bgColor);
     if (getBit(lcdc, 1)) {
-        for (const auto& obj : state.scanlineObjects) {
-            if (obj.isIntersectAtPoint(ly, state.x)) {
-                uint8_t id = obj.getColorIdAt(ly, state.x);
-                if (id == 0) continue;
-                if (isCGBMode) {
-                    if (bgId == 0 || !getBit(lcdc, 0) || (!bgPriority && !obj.getPriority())) {
-                        lcd->setPixel(ly, state.x, getObjectColor(obj.getCGBPalette(), id));
-                    }
-                } else {
-                    if (!obj.getPriority() || bgId == 0) {
-                        uint8_t palette = obj.getDMGPalette() ? obp1 : obp0;
-                        lcd->setPixel(ly, state.x, getObjectColor(obj.getDMGPalette(), getPaletteColor(palette, id)));
-                    }
+        const auto iter = std::ranges::find_if(state.scanlineObjects, [this](const auto& obj) {
+            return obj.isIntersectAtPoint(ly, state.x) && obj.getColorIdAt(ly, state.x) != 0;
+        });
+        if (iter != state.scanlineObjects.end()) {
+            const auto& obj = *iter;
+            uint8_t id = obj.getColorIdAt(ly, state.x);
+            if (isCGBMode) {
+                if (bgId == 0 || !getBit(lcdc, 0) || (!bgPriority && !obj.getPriority())) {
+                    lcd->setPixel(ly, state.x, getObjectColor(obj.getCGBPalette(), id));
                 }
-                break;
+            } else {
+                if (!obj.getPriority() || bgId == 0) {
+                    uint8_t palette = obj.getDMGPalette() ? obp1 : obp0;
+                    lcd->setPixel(ly, state.x, getObjectColor(obj.getDMGPalette(), getDMGPaletteColor(palette, id)));
+                }
             }
         }
     }

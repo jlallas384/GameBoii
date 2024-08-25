@@ -51,7 +51,7 @@ private:
 
     ObjectLayer createObject(uint8_t index) const;
 
-    uint8_t getPaletteColor(uint8_t palette, uint8_t id) const;
+    static uint8_t getDMGPaletteColor(uint8_t palette, uint8_t id);
     void doLYCompare();
     void doSingleDotDrawing();
 
