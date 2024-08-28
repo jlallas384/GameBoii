@@ -7,9 +7,9 @@ class SDLLCD : public LCD {
 public:
     SDLLCD(SDL_Window* window);
     void refresh() override;
-    void setPixel(uint8_t i, uint8_t j, uint16_t color) override;
+    void setPixel(uint8_t i, uint8_t j, Color color) override;
 private:
-    uint16_t buffer[height][width] = { 0 };
+    Color buffer[height][width] = {};
     SDL_Renderer* renderer;
     SDL_Texture* texture;
 };

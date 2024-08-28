@@ -22,13 +22,10 @@ void Application::run() {
         if (now - last >= 16670us / speed) {
             for (int i = 0; i < 17556; i++) {
                 gameBoy->run();
-                if (i % 10 == 0) {
-                    pollEvents();
-                }
             }
+            pollEvents();
             last = now;
         }
-
     }
 }
 

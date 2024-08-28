@@ -57,7 +57,6 @@ PPU::PPU(AddressBus& addrBus, std::unique_ptr<LCD> lcd, IRQHandler& irqHandler) 
     addrBus.setWriter(0xff43, scx);
 
     addrBus.setReader(0xff44, ly);
-    addrBus.setWriter(0xff44, ly);
 
     addrBus.setReader(0xff45, lyc);
     addrBus.setWriter(0xff45, [&](uint8_t byte) {

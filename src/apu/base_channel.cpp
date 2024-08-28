@@ -17,6 +17,7 @@ void BaseChannel::tickLength() {
 }
 
 void BaseChannel::tickVolume() {
+    if (!active) return;
     if (uint8_t pace = reg2 & 0x3; pace) {
         volumeTicksLeft--;
         if (!volumeTicksLeft) {

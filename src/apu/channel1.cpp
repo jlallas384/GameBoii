@@ -35,7 +35,7 @@ void Channel1::tickSweep() {
         ticksLeft = (reg0 >> 4) & 0x7;
     }
     uint16_t currentPeriod = (reg4 & 0x7) << 8 | reg3;
-    int nextPeriod = currentPeriod;
+    uint16_t nextPeriod = currentPeriod;
     uint16_t diff = currentPeriod >> (reg0 & 0x7);
     if (getBit(reg0, 3)) {
         nextPeriod -= diff;
@@ -48,23 +48,20 @@ void Channel1::tickSweep() {
     if (ticksLeft) {
         ticksLeft--;
         if (!ticksLeft) {
-            uint16_t period = nextPeriod & 0xffff;
-            reg3 = period & 0xff;
-            reg4 = (reg4 & ~0x7) | (period >> 8);
+            reg3 = nextPeriod & 0xff;
+            reg4 = (reg4 & ~0x7) | (nextPeriod >> 8);
         }
     }
 }
 
 void Channel1::tickImpl() {
     dividerTicks++;
-    if (dividerTicks == 1 && periodTicks == ((reg4 & 0x7) << 8 | reg3)) {
-        digitalOutput = getBit(waveforms[reg1 >> 6], waveformIndex) ? volume : 0;
-        waveformIndex = (waveformIndex + 1) % 8;
-    }
     if (dividerTicks == 4) {
         periodTicks++;
         if (periodTicks >= 2048) {
             periodTicks = (reg4 & 0x7) << 8 | reg3;
+            waveformIndex = (waveformIndex + 1) % 8;
+            digitalOutput = getBit(waveforms[reg1 >> 6], waveformIndex) ? volume : 0;
         }
         dividerTicks = 0;
     }

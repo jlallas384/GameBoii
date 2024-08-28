@@ -4,6 +4,10 @@
 #include "audio_engine.h"
 
 APU::APU(AddressBus& addrBus) : ch1(addrBus), ch2(addrBus), ch3(addrBus), ch4(addrBus) {
+    addrBus.setReader(0xff24, masterVolume);
+    addrBus.setWriter(0xff24, masterVolume);
+    addrBus.setReader(0xff25, panning);
+    addrBus.setWriter(0xff25, panning);
     addrBus.setReader(0xff26, [&]() {
         return (masterControl & (1 << 7)) | (ch4.isActive() << 3) | (ch3.isActive() << 2) | (ch2.isActive() << 1) | ch1.isActive();
     });
@@ -49,6 +53,12 @@ void APU::divTick() {
     }
 }
 
+void APU::reset() {
+    masterControl = 0;
+    masterVolume = 0;
+    panning = 0;
+}
+
 float applyVolume(float input, uint8_t volume) {
     return input * (1.0 / 8.0) * volume;
 }
@@ -62,42 +72,36 @@ void APU::sample() const {
 
     if (getBit(panning, 4)) {
         left += ch1Output;
-    } else if (getBit(panning, 0)) {
-        right += ch1Output;
-    } else {
-        left += ch1Output;
+    }
+    if (getBit(panning, 0)) {
         right += ch1Output;
     }
 
     if (getBit(panning, 5)) {
         left += ch2Output;
-    } else if (getBit(panning, 1)) {
-        right += ch2Output;
-    } else {
-        left += ch2Output;
+    }
+    if (getBit(panning, 1)) {
         right += ch2Output;
     }
 
     if (getBit(panning, 6)) {
         left += ch3Output;
-    } else if (getBit(panning, 2)) {
-        right += ch3Output;
-    } else {
-        left += ch3Output;
+    }
+    if (getBit(panning, 2)) {
         right += ch3Output;
     }
 
     if (getBit(panning, 7)) {
         left += ch4Output;
-    } else if (getBit(panning, 3)) {
-        right += ch4Output;
-    } else {
-        left += ch4Output;
+    }
+    if (getBit(panning, 3)) {
         right += ch4Output;
     }
+
     uint8_t leftVolume = ((masterVolume >> 4) & 0x7) + 1;
     uint8_t rightVolume = (masterVolume & 0x7) + 1;
     AudioEngine& engine = AudioEngine::getInstance();
-    float output = (applyVolume(left, leftVolume) + applyVolume(right, rightVolume)) / 2;
-    engine.pushSample(output);
+    float leftOutput = applyVolume(left, leftVolume);
+    float rightOutput = applyVolume(right, rightVolume);
+    engine.pushSample(leftOutput, rightOutput);
 }

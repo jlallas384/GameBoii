@@ -140,6 +140,7 @@ void GameBoy::loadCartridge(const std::filesystem::path& path) {
     bootROMEnabled = true;
     ppu.reset();
     cpu.reset();
+    apu.reset();
     key1 = 0;
 }
 

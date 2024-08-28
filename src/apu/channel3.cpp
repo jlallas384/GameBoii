@@ -35,19 +35,16 @@ Channel3::Channel3(AddressBus& addrBus) {
 
 void Channel3::tickImpl() {
     dividerTicks++;
-    if (dividerTicks == 1 && periodTicks == ((reg4 & 0x7) << 8 | reg3)) {
-        digitalOutput = sampleAt(sampleIndex);
-        uint8_t outputLevel = (reg2 >> 5) & 0x3;
-        if (outputLevel) {
-            digitalOutput >>= outputLevel - 1;
-        } else {
-            digitalOutput = 0;
-        }
-        sampleIndex = (sampleIndex + 1) % 32;
-    }
     if (dividerTicks == 2) {
         periodTicks++;
         if (periodTicks >= 2048) {
+            sampleIndex = (sampleIndex + 1) % 32;
+            digitalOutput = sampleAt(sampleIndex);
+            if (const uint8_t outputLevel = (reg2 >> 5) & 0x3; outputLevel) {
+                digitalOutput >>= outputLevel - 1;
+            } else {
+                digitalOutput = 0;
+            }
             periodTicks = (reg4 & 0x7) << 8 | reg3;
         }
         dividerTicks = 0;

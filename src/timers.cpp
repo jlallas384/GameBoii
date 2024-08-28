@@ -27,7 +27,7 @@ void Timers::tick(bool isDoubleSpeed) {
     if (getBit(previousDIV, bitPos) && !getBit(div, bitPos)) {
         apu.divTick();
     }
-    static uint8_t pos[] = { 9, 3, 5, 7 };
+    static constexpr uint8_t pos[] = { 9, 3, 5, 7 };
     bitPos = pos[tac & 0x3];
     bool currentAND = getBit(tac, 2) && getBit(div, bitPos);
     if (!currentAND && previousAND) {

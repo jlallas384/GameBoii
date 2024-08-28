@@ -13,6 +13,7 @@ public:
     APU(AddressBus& addrBus);
     void tick();
     void divTick();
+    void reset();
 private:
     void sample() const;
     Channel1 ch1;

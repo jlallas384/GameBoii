@@ -6,7 +6,7 @@ SDLLCD::SDLLCD(SDL_Window* window) :
     SDL_RenderSetLogicalSize(renderer, width, height);
 }
 
-void SDLLCD::setPixel(uint8_t i, uint8_t j, uint16_t color) {
+void SDLLCD::setPixel(uint8_t i, uint8_t j, Color color) {
     buffer[i][j] = color;
 }
 
